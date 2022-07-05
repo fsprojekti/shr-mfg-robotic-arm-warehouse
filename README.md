@@ -1,0 +1,1 @@
+# shr-mfg-robotic-arm-warehouse
