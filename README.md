@@ -1,26 +1,95 @@
 # Robot arm Warehouse
-Robot arm represents arbitrary package manipulation device that can be configured to simulate different types of manufacturing and supply chain facilities. One of them is a warehouse facility. Warehouse is facility for storing packages. 
+
+## Layout
+Robot arm represents arbitrary package manipulation device that can be configured to simulate different types of manufacturing and supply chain facilities. One of them is a warehouse facility that stores packages. The layout of the warehouse is presented on the figure 
 
 ![image](https://i.ibb.co/bNHq9ST/Drawing1.png)
+* **operational area**
+Robot arm movement is limited by the operational area which is a rectangular shaped surface. 
+* **dock**
+Dock represents a position inside operational area that is reserved for placement of packages. There are five types of docks: receive dock, receive buffer dock, dispatch dock, dispatch buffer dock and storage dock
+	* **receive dock**
+This type of dock is reserved for transportation vehicles for unloading of their cargo (packages) 
+	* **receive buffer dock**
+This type of dock is reserved as intermediate buffer storage during unloading of transportation vehicles
+	* **dispatch dock**
+This type of dock is reserved for transportation vehicles for loading cargo 
+	* **dispatch buffer dock**
+This type of dock is reserved as intermediate buffer storage during loading to transportation vehicles
+	* **storage dock** 
+This type of dock is used for storing packages 
 
+## Package management process
 
+Packages are moved by warehouse package management process via execution of tasks that are collected in package management queue. 
 
+### Package management queue
 
+Example of package management queue is shown as table. 
 
-Storing of packages is divided into three stages receive stage, store stage and dispatch stage.
+Order|Task|
+|---|---|
+|1|task 1|
+|2|task 2|
+|...|...| 
+|n|task n|
+
+Package management process ensures tasks are executed in right order. Task execution process takes first task from queue and start the process of task execution. It waits for the task completion. After task completion the task is removed from the queue and next task in line is assign for execution.
 
 ```mermaid
-graph  LR
-A[Receive stage]-->B[Store stage]-->C[Dispatch stage]
+graph  TD
+A[Fetch first task]-->B[Begin execution]-->C{is task <br>completed?}
+C-->|YES|D[remove task from queue]-->A
 ```
-## Receive stage
-At receive stage the packages are begin received at the loading dock and are moved to the intermediate buffer location
+### Tasks
+There are several type of tasks with specific functionalities.
 
-## Store stage
-## Dispatch stage
+### Receive task
 
+Package is being received at *receive dock* (this is where transport stops to unload) and is moved to *receive buffer dock*. Task parameters are described in table
+|Name|Description|
+|---|---|
+|package|id of package to be received by the warehouse|
+|receive dock|id of dock where the transportation vehicle will wail for unloading of package|
+|receive buffer dock|id of dock where robotic arm will move package when it is unloaded from the transportation vehicle
+
+Process behind receiving task is described with flowchart
+
+### Store task
+Store task moves package from receive buffer dock to specific storing dock. Finding optimal storage dock is calculated by stacking algorithm.  Task parameters are described in table
+
+|Name|Description|
+|---|---|
+|package|id of package to be moved to storage dock|
+|receive buffer dock|id of dock where the package waits to be stored|
+|stack type|type of stacking algorithm to calculate optimal storage dock
+
+Store task process is described with flowchart
+
+#### Stacking algorithm
+Stacking algorithm calculates the optimal dock where the package will be stored. Optimal solution is based on certain criteria it can be simple like find the first empty dock or it can be more complex like minimizing storage time. 
+Types of stacking algorithms are collected in a table
+|Type| Description|
+|---|---|
+|FIRST|Find the first empty dock| 
+
+### Swap task
+Swap task moves package from source storage dock to target storing dock. This task is used to swap packages in order to optimize warehouse package management.  Task parameters are described in table
+
+|Name|Description|
+|---|---|
+|package|id of package to be moved to target storage dock|
+|source storage dock|id of dock where the package waits to be stored|
+|stack type|type of stacking algorithm to calculate optimal storage dock
+
+Store task process is described with flowchart
+### Unstore task
+### Dispatch task
+
+## Implementation
 
 ### Properties
+
 |name|type|description|units
 |---|---|---|---|
 |operationalArea|struct| operating area of the robot|
@@ -28,34 +97,32 @@ At receive stage the packages are begin received at the loading dock and are mov
 |operationalArea.length|number|length of the operating area|mm
 |operationalArea.widthOffset|number|offset width of the operating area|mm
 |operationalArea.lengthOffset|number|offset length the operating area|mm
-|docks|array(struct)| list of docking areas|
+|docks|array(dock)| list of docking areas|
 |dock| struct| docking area structure|
+|dock.id|id|id of a dock|
 |dock.width| number|width of the docking area|mm
 |dock.length| number|height of the docking area|mm
 |dock.widthOffset|number|with offset center point of dock|mm
 |dock.lengthOffset|number|length offset center point of dock|mm
 |dock.maxPackage| number|maximum number of packages|count
-|dock.type|[STORAGE, RAMP]|definition of dock type 
-|dock.loadingHeight|loading height of transportational vehicle
-|package|struct|properties of packages|
-|package.width|number|width of the package|mm
-|package.length|number|length of the package|mm
+|dock.type|RECEIVE, RECEIVE_BUFFER, STORE, DISPATCH_BUFFER, DISPATCH|definition of dock type 
+|dock.loadingHeight |loading height of transportation vehicle
+|package|struct|package physical properties structure|
+|package.radio |number|radio of the package|mm
 |package.height|number|height of the package|mm
 
 ### Variables
 |name|type|description|units
-|---|---|---|---|---|
-|packages|struct|list of all packages present in warehouse|
-|state|IDLE,MOVING,STORING,UNSTORING|
+|---|---|---|---|
+|slots|array(slot)|array of all slots in a warehouse|
+|slot|structure of slot|
+|slot.dock|id|id of dock to which slot belongs|
+|slot.level|number|level of a slot (at which height the slot lies)
+|slot.package|id|package id if slot is occupied else empty
+|state|IDLE,MOVING,STORING,UNSTORING|Current state of warehouse
+|queue|array(tasks)|queue for package management process|
 
-### Actions
-|route|description|params|errors|unit
+
+### Functions
+|name|params|params|
 |---|---|---|---|---|
-|get/parameters|get all parameters of the model|
-|set/parameters|set whole parameters structure and initialize model||-can't initialize configuration|
-|get/packages|get list of packages
-|basic/moveTo|move robot to specific location|x,y,z|-can't move outside operating area, -can't move packages in way|mm,mm,mm|
-|basic/stop|halt robot movment|
-|basic/move|move robot from current position|dx,dy,dz|-can't move outside operating area, -can't move packages in way|mm,mm,mm
-|advanced/store|unload from ramp dock and put to nearest empty storage dock|id_package, id_loading_dock|-can't store warehouse full|
-|advanced/unstore|unload from storage dock and load to ramp dock|id_package,id_dock|
