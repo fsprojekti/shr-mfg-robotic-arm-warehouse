@@ -54,6 +54,7 @@ Package is being received at *receive dock* (this is where transport stops to un
 |receive buffer dock|id of dock where robotic arm will move package when it is unloaded from the transportation vehicle
 
 Process behind receiving task is described with flowchart
+![image](https://i.ibb.co/3FgZrtS/receive-Task.jpg)
 
 ### Store task
 Store task moves package from receive buffer dock to specific storing dock. Finding optimal storage dock is calculated by stacking algorithm.  Task parameters are described in table
@@ -76,6 +77,9 @@ Types of stacking algorithms are collected in a table
 ### Swap task
 Swap task moves package from source storage dock to target storing dock. This task is used to swap packages in order to optimize warehouse package management.  Task parameters are described in table
 
+![image](https://i.ibb.co/Tqn1fdK/swapTask.jpg)
+
+
 |Name|Description|
 |---|---|
 |package|id of package to be moved to target storage dock|
@@ -83,8 +87,15 @@ Swap task moves package from source storage dock to target storing dock. This ta
 |stack type|type of stacking algorithm to calculate optimal storage dock
 
 Store task process is described with flowchart
+
+![image](https://i.ibb.co/xmXhHn9/store-Task.jpg)
+
 ### Unstore task
+
+![image](https://i.ibb.co/gWp1rms/unstore-Task.jpg)
 ### Dispatch task
+
+![image](https://i.ibb.co/M7F06p3/dispatch-Task.jpg)
 
 ## Implementation
 
