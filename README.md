@@ -95,7 +95,7 @@ Store task process is described with flowchart
 ![image](https://i.ibb.co/gWp1rms/unstore-Task.jpg)
 ### Dispatch task
 
-![image](https://i.ibb.co/M7F06p3/dispatch-Task.jpg)
+![image](https://i.ibb.co/jGXmqqg/dispatche-Task.jpg)
 
 ## Implementation
 
