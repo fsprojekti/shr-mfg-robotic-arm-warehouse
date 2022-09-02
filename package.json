@@ -1,0 +1,24 @@
+{
+  "name": "jetmax",
+  "version": "1.0.0",
+  "description": "nodejs application with http api for communication with jetmax robot arm",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Tomaž Požrl",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "async": "^3.2.4",
+    "axios": "^0.27.2",
+    "console-stamp": "^3.0.6",
+    "es6-promise": "^4.2.8",
+    "express": "^4.18.1",
+    "express-ws": "^5.0.2",
+    "log-timestamp": "^0.3.0",
+    "ws": "^7.5.8",
+    "yargs": "^17.5.1"
+  }
+}
