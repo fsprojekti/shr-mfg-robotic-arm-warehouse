@@ -1,31 +1,14 @@
 import { createRequire } from "module";
 
 const require = createRequire(import.meta.url);
-const axios = require("axios").default;
-const config = require("../Test/config.json");
-
-var Promise = require("es6-promise").Promise;
-var async = require("async");
-const express = require("express");
+let Promise = require("es6-promise").Promise;
 
 import {
-  goDown,
-  goReset,
   goStorageD1,
   goStorageD2,
   goStorageD3,
   goStorageD4,
-  goDispatchBuffer,
-  goDispatchDock,
-  goReceiveBuffer,
-  goReceiveDock,
-  suctionOFF,
-  suctionON,
   localisation,
-  queueDispatchBuffer,
-  queueDispatchDock,
-  queueReceiveBuffer,
-  queueReceiveDock,
   queueStorageDock1,
   queueStorageDock2,
   queueStorageDock3,
@@ -35,32 +18,32 @@ import {
 //Travel Time optimisation & Storage optimisation
 function goStorage() {
   if (localisation < 5) {
-    if (queueStorageDock2.topIndexB < 4 && localisation != 2) {
+    if (queueStorageDock2.topIndexB < 4 && localisation !== 2) {
       goStorageD2();
-    } else if (queueStorageDock1.topIndexA < 4 && localisation != 1) {
+    } else if (queueStorageDock1.topIndexA < 4 && localisation !== 1) {
       goStorageD1();
-    } else if (queueStorageDock3.topIndexE < 4 && localisation != 6) {
+    } else if (queueStorageDock3.topIndexE < 4 && localisation !== 6) {
       goStorageD3();
-    } else if (queueStorageDock4.topIndexE < 4 && localisation != 5) {
+    } else if (queueStorageDock4.topIndexE < 4 && localisation !== 5) {
       goStorageD4();
     }
   }
   if (localisation > 4) {
-    if (queueStorageDock3.topIndexF < 4 && localisation != 6) {
+    if (queueStorageDock3.topIndexF < 4 && localisation !== 6) {
       goStorageD3();
-    } else if (queueStorageDock4.topIndexE < 4 && localisation != 5) {
+    } else if (queueStorageDock4.topIndexE < 4 && localisation !== 5) {
       goStorageD4();
-    } else if (queueStorageDock2.topIndexB < 4 && localisation != 2) {
+    } else if (queueStorageDock2.topIndexB < 4 && localisation !== 2) {
       goStorageD2();
-    } else if (queueStorageDock1.topIndexA < 4 && localisation != 1) {
+    } else if (queueStorageDock1.topIndexA < 4 && localisation !== 1) {
       goStorageD1();
     }
   }
   if (
-    queueStorageDock1.topIndexA == 4 &&
-    queueStorageDock2.topIndexB == 4 &&
-    queueStorageDock3.topIndexF == 4 &&
-    queueStorageDock4.topIndexE == 4
+    queueStorageDock1.topIndexA === 4 &&
+    queueStorageDock2.topIndexB === 4 &&
+    queueStorageDock3.topIndexF === 4 &&
+    queueStorageDock4.topIndexE === 4
   ) {
     throw new Error("All storages are full");
   }

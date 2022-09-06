@@ -1,13 +1,3 @@
-import { createRequire } from "module";
-
-const require = createRequire(import.meta.url);
-const axios = require("axios").default;
-const config = require("../Test/config.json");
-
-var Promise = require("es6-promise").Promise;
-var async = require("async");
-const express = require("express");
-
 import {
   goReset,
   goReceiveBuffer,
@@ -25,7 +15,6 @@ async function loadTask() {
   while (queueReceiveDock.topIndexD > 0) {
     await goReceiveDock();
     await suctionON();
-    // await goReceiveDock();
     await goReceiveBuffer();
     await suctionOFF();
   }

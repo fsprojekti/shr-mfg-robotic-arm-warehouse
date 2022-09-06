@@ -1,16 +1,10 @@
-import { group } from "console";
-import { read } from "fs";
 import { createRequire } from "module";
 
 const require = createRequire(import.meta.url);
 const axios = require("axios").default;
-const config = require("../Test/config.json");
+let Promise = require("es6-promise").Promise;
 
-var Promise = require("es6-promise").Promise;
-var async = require("async");
-const express = require("express");
-
-const jetmaxUbuntServerIpAddress = "localhost:3000";
+const jetmaxUbuntuServerIpAddress = "localhost:3000";
 
 //QUEUES
 import {
@@ -23,7 +17,7 @@ import {
   QueueG,
   QueueH,
   QueueRobot,
-} from "../Main/queuelifo.js";
+} from "./queuelifo.js";
 
 const queueStorageDock1 = new QueueA();
 const queueStorageDock2 = new QueueB();
@@ -36,23 +30,23 @@ const queueDispatchDock = new QueueH();
 const queueRobot = new QueueRobot();
 
 //Warehouse
-import { readWarehouse, saveWarehouse, stateWarehouse } from "./warehouse.js";
+import { saveWarehouse, stateWarehouse } from "./warehouse.js";
 
-var localisation = 0;
+let localisation = 0;
 
 // MOTION FUNCTIONS
 
 //GO Reset
-function goReset() {
+async function goReset() {
   localisation = 0;
-  var X = 0;
-  var Y = -162.94;
-  var Z = 212.8;
-  axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/moveTo", {
+  let X = 0;
+  let Y = -162.94;
+  let Z = 212.8;
+  await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
     params: { msg: { x: X, y: Y, z: Z } },
   });
-  saveWarehouse();
-  stateWarehouse();
+  await saveWarehouse();
+  await stateWarehouse();
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve("resolved");
@@ -63,20 +57,20 @@ function goReset() {
 //GO A
 async function goStorageD1() {
   localisation = 1;
-  var X = -115;
-  var Y = 70;
-  var Z = 215;
-  if (queueStorageDock1.topIndexA == 4 && queueRobot.topIndexR == 1) {
+  let X = -115;
+  let Y = 70;
+  let Z = 215;
+  if (queueStorageDock1.topIndexA === 4 && queueRobot.topIndexR === 1) {
     await saveWarehouse();
     await suctionOFF();
     await goReset();
-    throw new Error("STORAGE DOCK 1 IS ALREADY FULL !!! TASK ABORDED");
+    throw new Error("STORAGE DOCK 1 IS FULL! TASK ABORTED");
   }
-  axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/moveTo", {
+  await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
     params: { msg: { x: X, y: Y, z: Z } },
   });
-  saveWarehouse();
-  stateWarehouse();
+  await saveWarehouse();
+  await stateWarehouse();
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve("resolved");
@@ -87,20 +81,20 @@ async function goStorageD1() {
 //GO B
 async function goStorageD2() {
   localisation = 2;
-  var X = -115;
-  var Y = -20;
-  var Z = 215;
-  if (queueStorageDock2.topIndexB == 4 && queueRobot.topIndexR == 1) {
+  let X = -115;
+  let Y = -20;
+  let Z = 215;
+  if (queueStorageDock2.topIndexB === 4 && queueRobot.topIndexR === 1) {
     await saveWarehouse();
     await suctionOFF();
     await goReset();
-    throw new Error("STORAGE DOCK 2 IS ALREADY FULL !!! TASK ABORDED");
+    throw new Error("STORAGE DOCK 2 IS FULL! TASK ABORTED");
   }
-  axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/moveTo", {
+  await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
     params: { msg: { x: X, y: Y, z: Z } },
   });
-  saveWarehouse();
-  stateWarehouse();
+  await saveWarehouse();
+  await stateWarehouse();
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve("resolved");
@@ -111,20 +105,20 @@ async function goStorageD2() {
 //GO F
 async function goStorageD3() {
   localisation = 6;
-  var X = 115;
-  var Y = -20;
-  var Z = 215;
-  if (queueStorageDock3.topIndexF == 4 && queueRobot.topIndexR == 1) {
+  let X = 115;
+  let Y = -20;
+  let Z = 215;
+  if (queueStorageDock3.topIndexF === 4 && queueRobot.topIndexR === 1) {
     await saveWarehouse();
     await suctionOFF();
     await goReset();
-    throw new Error("STORAGE DOCK 3 IS ALREADY FULL !!! TASK ABORDED");
+    throw new Error("STORAGE DOCK 3 IS FULL! TASK ABORTED");
   }
-  axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/moveTo", {
+  await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
     params: { msg: { x: X, y: Y, z: Z } },
   });
-  saveWarehouse();
-  stateWarehouse();
+  await saveWarehouse();
+  await stateWarehouse();
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve("resolved");
@@ -135,20 +129,20 @@ async function goStorageD3() {
 //GO E
 async function goStorageD4() {
   localisation = 5;
-  var X = 115;
-  var Y = 65;
-  var Z = 215;
-  if (queueStorageDock4.topIndexE == 4 && queueRobot.topIndexR == 1) {
+  let X = 115;
+  let Y = 65;
+  let Z = 215;
+  if (queueStorageDock4.topIndexE === 4 && queueRobot.topIndexR === 1) {
     await saveWarehouse();
     await suctionOFF();
     await goReset();
-    throw new Error("STORAGE DOCK 4 IS ALREADY FULL !!! TASK ABORDED");
+    throw new Error("STORAGE DOCK 4 IS FULL! TASK ABORTED");
   }
-  axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/moveTo", {
+  await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
     params: { msg: { x: X, y: Y, z: Z } },
   });
-  saveWarehouse();
-  stateWarehouse();
+  await saveWarehouse();
+  await stateWarehouse();
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve("resolved");
@@ -159,20 +153,20 @@ async function goStorageD4() {
 //GO C
 async function goReceiveBuffer() {
   localisation = 3;
-  var X = -125;
-  var Y = -110;
-  var Z = 215;
-  if (queueReceiveBuffer.topIndexC == 4 && queueRobot.topIndexR == 1) {
+  let X = -125;
+  let Y = -110;
+  let Z = 215;
+  if (queueReceiveBuffer.topIndexC === 4 && queueRobot.topIndexR === 1) {
     await saveWarehouse();
     await suctionOFF();
     await goReset();
-    throw new Error("RECEIVE BUFFER IS ALREADY FULL !!! TASK ABORDED");
+    throw new Error("RECEIVE BUFFER IS FULL! TASK ABORTED");
   }
-  axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/moveTo", {
+  await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
     params: { msg: { x: X, y: Y, z: Z } },
   });
-  saveWarehouse();
-  stateWarehouse();
+  await saveWarehouse();
+  await stateWarehouse();
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve("resolved");
@@ -183,20 +177,20 @@ async function goReceiveBuffer() {
 //GO G
 async function goDispatchBuffer() {
   localisation = 7;
-  var X = 125;
-  var Y = -110;
-  var Z = 215;
-  if (queueDispatchBuffer.topIndexG == 4 && queueRobot.topIndexR == 1) {
+  let X = 125;
+  let Y = -110;
+  let Z = 215;
+  if (queueDispatchBuffer.topIndexG === 4 && queueRobot.topIndexR === 1) {
     await saveWarehouse();
     await suctionOFF();
     await goReset();
-    throw new Error("DISPATCH BUFFER IS ALREADY FULL !!! TASK ABORDED");
+    throw new Error("DISPATCH BUFFER IS FULL! TASK ABORTED");
   }
-  axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/moveTo", {
+  await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
     params: { msg: { x: X, y: Y, z: Z } },
   });
-  saveWarehouse();
-  stateWarehouse();
+  await saveWarehouse();
+  await stateWarehouse();
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve("resolved");
@@ -207,20 +201,20 @@ async function goDispatchBuffer() {
 //GO D
 async function goReceiveDock() {
   localisation = 4;
-  var X = -125;
-  var Y = -200;
-  var Z = 215;
-  if (queueReceiveDock.topIndexD == 4 && queueRobot.topIndexR == 1) {
+  let X = -125;
+  let Y = -200;
+  let Z = 215;
+  if (queueReceiveDock.topIndexD === 4 && queueRobot.topIndexR === 1) {
     await saveWarehouse();
     await suctionOFF();
     await goReset();
-    throw new Error("RECEIVE DOCK IS ALREADY FULL !!! TASK ABORDED");
+    throw new Error("RECEIVE DOCK IS FULL! TASK ABORTED");
   }
-  axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/moveTo", {
-    params: { msg: { x: X, y: Y, z: Z } },
+  await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
+    params: {msg: {x: X, y: Y, z: Z}},
   });
-  saveWarehouse();
-  stateWarehouse();
+  await saveWarehouse();
+  await stateWarehouse();
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve("resolved");
@@ -231,20 +225,20 @@ async function goReceiveDock() {
 //GO H
 async function goDispatchDock() {
   localisation = 8;
-  var X = 125;
-  var Y = -200;
-  var Z = 215;
-  if (queueDispatchDock.topIndexH == 4 && queueRobot.topIndexR == 1) {
+  let X = 125;
+  let Y = -200;
+  let Z = 215;
+  if (queueDispatchDock.topIndexH === 4 && queueRobot.topIndexR === 1) {
     await saveWarehouse();
     await suctionOFF();
     await goReset();
-    throw new Error("DISPATCH DOCK IS ALREADY FULL !!! TASK ABORDED");
+    throw new Error("DISPATCH DOCK IS FULL! TASK ABORTED");
   }
-  axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/moveTo", {
+  await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
     params: { msg: { x: X, y: Y, z: Z } },
   });
-  saveWarehouse();
-  stateWarehouse();
+  await saveWarehouse();
+  await stateWarehouse();
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve("resolved");
@@ -255,30 +249,30 @@ async function goDispatchDock() {
 //SUCTION ON
 async function suctionON() {
   await goDown();
-  if (queueReceiveBuffer.topIndexC == 4 && localisation == 4) {
+  if (queueReceiveBuffer.topIndexC === 4 && localisation === 4) {
     await saveWarehouse();
     await goReset();
-    throw new Error("RECEIVE BUFFER IS ALREADY FULL !!! TASK ABORDED");
+    throw new Error("RECEIVE BUFFER IS FULL! TASK ABORTED");
   }
   if (
-    queueStorageDock1.topIndexA == 4 &&
-    queueStorageDock2.topIndexB == 4 &&
-    queueStorageDock3.topIndexE == 4 &&
-    queueStorageDock4.topIndexF == 4 &&
-    localisation == 3
+    queueStorageDock1.topIndexA === 4 &&
+    queueStorageDock2.topIndexB === 4 &&
+    queueStorageDock3.topIndexE === 4 &&
+    queueStorageDock4.topIndexF === 4 &&
+    localisation === 3
   ) {
     await saveWarehouse();
     await goReset();
-    throw new Error("STORAGE IS ALREADY FULL !!! TASK ABORDED");
+    throw new Error("STORAGE IS FULL! TASK ABORTED");
   }
-  if (queueDispatchDock.topIndexH == 4 && localisation == 7) {
+  if (queueDispatchDock.topIndexH === 4 && localisation === 7) {
     await saveWarehouse();
     await goReset();
-    throw new Error("DISPATCH DOCK IS ALREADY FULL !!! TASK ABORDED");
+    throw new Error("DISPATCH DOCK IS FULL! TASK ABORTED");
   }
   // await ReadSaveWarehouse();
   await goGrab();
-  await axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/suction", {
+  await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
     params: { msg: { data: true } },
   });
   if (queueRobot.topIndexR === 1) {
@@ -287,7 +281,7 @@ async function suctionON() {
   } else {
     if (localisation === 1 && queueRobot.topIndexR === 0) {
       if (queueStorageDock1.topIndexA === 0) {
-        axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/suction", {
+        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
           params: { msg: { data: false } },
         });
         await saveWarehouse();
@@ -298,7 +292,7 @@ async function suctionON() {
     }
     if (localisation === 2 && queueRobot.topIndexR === 0) {
       if (queueStorageDock2.topIndexB === 0) {
-        axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/suction", {
+        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
           params: { msg: { data: false } },
         });
         await saveWarehouse();
@@ -309,7 +303,7 @@ async function suctionON() {
     }
     if (localisation === 3 && queueRobot.topIndexR === 0) {
       if (queueReceiveBuffer.topIndexC === 0) {
-        axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/suction", {
+        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
           params: { msg: { data: false } },
         });
         await saveWarehouse();
@@ -320,7 +314,7 @@ async function suctionON() {
     }
     if (localisation === 4 && queueRobot.topIndexR === 0) {
       if (queueReceiveDock.topIndexD === 0) {
-        axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/suction", {
+        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
           params: { msg: { data: false } },
         });
         await saveWarehouse();
@@ -331,7 +325,7 @@ async function suctionON() {
     }
     if (localisation === 5 && queueRobot.topIndexR === 0) {
       if (queueStorageDock4.topIndexE === 0) {
-        axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/suction", {
+        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
           params: { msg: { data: false } },
         });
         await saveWarehouse();
@@ -342,7 +336,7 @@ async function suctionON() {
     }
     if (localisation === 6 && queueRobot.topIndexR === 0) {
       if (queueStorageDock3.topIndexF === 0) {
-        axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/suction", {
+        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
           params: { msg: { data: false } },
         });
         await saveWarehouse();
@@ -353,7 +347,7 @@ async function suctionON() {
     }
     if (localisation === 7 && queueRobot.topIndexR === 0) {
       if (queueDispatchBuffer.topIndexG === 0) {
-        axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/suction", {
+        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
           params: { msg: { data: false } },
         });
         await saveWarehouse();
@@ -364,7 +358,7 @@ async function suctionON() {
     }
     if (localisation === 8 && queueRobot.topIndexR === 0) {
       if (queueDispatchDock.topIndexH === 0) {
-        axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/suction", {
+        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
           params: { msg: { data: false } },
         });
         await saveWarehouse();
@@ -388,10 +382,10 @@ async function suctionOFF() {
   await goDown();
   // await ReadSaveWarehouse();
 
-  axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/suction", {
+  await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
     params: { msg: { data: false } },
   });
-  axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/move", {
+  await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/move", {
     params: { msg: { x: 0, y: 0, z: 50 } },
   });
   if (queueRobot.topIndexR === 0) {
@@ -451,14 +445,14 @@ function getLocation() {
 //GO DOWN
 async function goDown() {
   // getLocation();
-  queueRobot.topIndexR;
-  queueStorageDock1.topIndexA;
-  queueStorageDock2.topIndexB;
-  queueStorageDock3.topIndexF;
-  queueStorageDock4.topIndexE;
-  queueReceiveBuffer.topIndexC;
-  queueDispatchBuffer.topIndexG;
-  queueDispatchDock.topIndexH;
+  // queueRobot.topIndexR;
+  // queueStorageDock1.topIndexA;
+  // queueStorageDock2.topIndexB;
+  // queueStorageDock3.topIndexF;
+  // queueStorageDock4.topIndexE;
+  // queueReceiveBuffer.topIndexC;
+  // queueDispatchBuffer.topIndexG;
+  // queueDispatchDock.topIndexH;
   // A
   if (
     (localisation === 1 && queueStorageDock1.topIndexA === 0) ||
@@ -470,7 +464,7 @@ async function goDown() {
     (localisation === 7 && queueDispatchBuffer.topIndexG === 0) ||
     (localisation === 8 && queueDispatchDock.topIndexH === 0)
   ) {
-    DownIndex1();
+    await DownIndex1();
   }
   if (
     (localisation === 1 && queueStorageDock1.topIndexA === 1) ||
@@ -482,7 +476,7 @@ async function goDown() {
     (localisation === 7 && queueDispatchBuffer.topIndexG === 1) ||
     (localisation === 8 && queueDispatchDock.topIndexH === 1)
   ) {
-    DownIndex1();
+    await DownIndex1();
   }
   if (
     (localisation === 1 && queueStorageDock1.topIndexA === 2) ||
@@ -494,7 +488,7 @@ async function goDown() {
     (localisation === 7 && queueDispatchBuffer.topIndexG === 2) ||
     (localisation === 8 && queueDispatchDock.topIndexH === 2)
   ) {
-    DownIndex2();
+    await DownIndex2();
   }
   if (
     (localisation === 1 && queueStorageDock1.topIndexA === 3) ||
@@ -506,7 +500,7 @@ async function goDown() {
     (localisation === 7 && queueDispatchBuffer.topIndexG === 3) ||
     (localisation === 8 && queueDispatchDock.topIndexH === 3)
   ) {
-    DownIndex3();
+    await DownIndex3();
   }
   if (
     (localisation === 1 && queueStorageDock1.topIndexA === 4) ||
@@ -518,7 +512,7 @@ async function goDown() {
     (localisation === 7 && queueDispatchBuffer.topIndexG === 4) ||
     (localisation === 8 && queueDispatchDock.topIndexH === 4)
   ) {
-    DownIndex4();
+    await DownIndex4();
   }
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -527,9 +521,9 @@ async function goDown() {
   });
 }
 
-function DownIndex1() {
-  axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/move", {
-    params: { msg: { x: 0, y: 0, z: -133 } },
+async function DownIndex1() {
+  await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/move", {
+    params: {msg: {x: 0, y: 0, z: -133}},
   });
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -538,9 +532,9 @@ function DownIndex1() {
   });
 } // INDEX = 1
 
-function DownIndex2() {
-  axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/move", {
-    params: { msg: { x: 0, y: 0, z: -126 } },
+async function DownIndex2() {
+  await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/move", {
+    params: {msg: {x: 0, y: 0, z: -126}},
   });
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -549,8 +543,8 @@ function DownIndex2() {
   });
 } // INDEX = 2
 
-function DownIndex3() {
-  axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/move", {
+async function DownIndex3() {
+  await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/move", {
     params: { msg: { x: 0, y: 0, z: -116 } },
   });
   return new Promise((resolve) => {
@@ -560,8 +554,8 @@ function DownIndex3() {
   });
 } //INDEX = 3
 
-function DownIndex4() {
-  axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/move", {
+async function DownIndex4() {
+  await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/move", {
     params: { msg: { x: 0, y: 0, z: -106 } },
   });
   return new Promise((resolve) => {
@@ -571,8 +565,8 @@ function DownIndex4() {
   });
 } //INDEX = 4
 
-function goGrab() {
-  axios.get("http://" + jetmaxUbuntServerIpAddress + "/basic/move", {
+async function goGrab() {
+  await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/move", {
     params: { msg: { x: 0, y: 0, z: -20 } },
   });
   return new Promise((resolve) => {

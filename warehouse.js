@@ -2,7 +2,6 @@ import { createRequire } from "module";
 
 const require = createRequire(import.meta.url);
 const fs = require("fs");
-// import { ID } from "./warehouseforms.js";
 
 import {
   queueDispatchBuffer,
@@ -318,111 +317,111 @@ function saveWarehouse() {
   };
   //ROBOT
   if (queueRobot.items[0] !== undefined) {
-    warehouse.Robot.itemID1 === queueRobot.items[0];
+    warehouse.Robot.itemID1 = queueRobot.items[0];
   }
   //STORAGE 1
   if (queueStorageDock1.items[0] !== undefined) {
-    warehouse.StorageDock1.itemID1 === queueStorageDock1.items[0];
+    warehouse.StorageDock1.itemID1 = queueStorageDock1.items[0];
   }
   if (queueStorageDock1.items[1] !== undefined) {
-    warehouse.StorageDock1.itemID1 === queueStorageDock1.items[1];
+    warehouse.StorageDock1.itemID1 = queueStorageDock1.items[1];
   }
   if (queueStorageDock1.items[2] !== undefined) {
-    warehouse.StorageDock1.itemID1 === queueStorageDock1.items[2];
+    warehouse.StorageDock1.itemID1 = queueStorageDock1.items[2];
   }
   if (queueStorageDock1.items[3] !== undefined) {
-    warehouse.StorageDock1.itemID1 === queueStorageDock1.items[3];
+    warehouse.StorageDock1.itemID1 = queueStorageDock1.items[3];
   }
   //STORAGE 2
   if (queueStorageDock2.items[0] !== undefined) {
-    warehouse.StorageDock2.itemID1 === queueStorageDock2.items[0];
+    warehouse.StorageDock2.itemID1 = queueStorageDock2.items[0];
   }
   if (queueStorageDock2.items[1] !== undefined) {
-    warehouse.StorageDock2.itemID1 === queueStorageDock2.items[1];
+    warehouse.StorageDock2.itemID1 = queueStorageDock2.items[1];
   }
   if (queueStorageDock2.items[2] !== undefined) {
-    warehouse.StorageDock2.itemID1 === queueStorageDock2.items[2];
+    warehouse.StorageDock2.itemID1 = queueStorageDock2.items[2];
   }
   if (queueStorageDock2.items[3] !== undefined) {
-    warehouse.StorageDock2.itemID1 === queueStorageDock2.items[3];
+    warehouse.StorageDock2.itemID1 = queueStorageDock2.items[3];
   }
   //STORAGE 3
   if (queueStorageDock3.items[0] !== undefined) {
-    warehouse.StorageDock3.itemID1 === queueStorageDock3.items[0];
+    warehouse.StorageDock3.itemID1 = queueStorageDock3.items[0];
   }
   if (queueStorageDock3.items[1] !== undefined) {
-    warehouse.StorageDock3.itemID1 === queueStorageDock3.items[1];
+    warehouse.StorageDock3.itemID1 = queueStorageDock3.items[1];
   }
   if (queueStorageDock3.items[2] !== undefined) {
-    warehouse.StorageDock3.itemID1 === queueStorageDock3.items[2];
+    warehouse.StorageDock3.itemID1 = queueStorageDock3.items[2];
   }
   if (queueStorageDock3.items[3] !== undefined) {
-    warehouse.StorageDock3.itemID1 === queueStorageDock3.items[3];
+    warehouse.StorageDock3.itemID1 = queueStorageDock3.items[3];
   }
   //STORAGE 4
   if (queueStorageDock4.items[0] !== undefined) {
-    warehouse.StorageDock4.itemID1 === queueStorageDock4.items[0];
+    warehouse.StorageDock4.itemID1 = queueStorageDock4.items[0];
   }
   if (queueStorageDock4.items[1] !== undefined) {
-    warehouse.StorageDock4.itemID1 === queueStorageDock4.items[1];
+    warehouse.StorageDock4.itemID1 = queueStorageDock4.items[1];
   }
   if (queueStorageDock4.items[2] !== undefined) {
-    warehouse.StorageDock4.itemID1 === queueStorageDock4.items[2];
+    warehouse.StorageDock4.itemID1 = queueStorageDock4.items[2];
   }
   if (queueStorageDock4.items[3] !== undefined) {
-    warehouse.StorageDock4.itemID1 === queueStorageDock4.items[3];
+    warehouse.StorageDock4.itemID1 = queueStorageDock4.items[3];
   }
   //RECEIVE BUFFER
   if (queueReceiveBuffer.items[0] !== undefined) {
-    warehouse.ReceiveBuffer.itemID1 === queueReceiveBuffer.items[0];
+    warehouse.ReceiveBuffer.itemID1 = queueReceiveBuffer.items[0];
   }
   if (queueReceiveBuffer.items[1] !== undefined) {
-    warehouse.ReceiveBuffer.itemID1 === queueReceiveBuffer.items[1];
+    warehouse.ReceiveBuffer.itemID1 = queueReceiveBuffer.items[1];
   }
   if (queueReceiveBuffer.items[2] !== undefined) {
-    warehouse.ReceiveBuffer.itemID1 === queueReceiveBuffer.items[2];
+    warehouse.ReceiveBuffer.itemID1 = queueReceiveBuffer.items[2];
   }
   if (queueReceiveBuffer.items[3] !== undefined) {
-    warehouse.ReceiveBuffer.itemID1 === queueReceiveBuffer.items[3];
+    warehouse.ReceiveBuffer.itemID1 = queueReceiveBuffer.items[3];
   }
   //RECEIVE DOCK
   if (queueReceiveDock.items[0] !== undefined) {
-    warehouse.ReceiveDock.itemID1 === queueReceiveDock.items[0];
+    warehouse.ReceiveDock.itemID1 = queueReceiveDock.items[0];
   }
   if (queueReceiveDock.items[1] !== undefined) {
-    warehouse.ReceiveDock.itemID1 === queueReceiveDock.items[1];
+    warehouse.ReceiveDock.itemID1 = queueReceiveDock.items[1];
   }
   if (queueReceiveDock.items[2] !== undefined) {
-    warehouse.ReceiveDock.itemID1 === queueReceiveDock.items[2];
+    warehouse.ReceiveDock.itemID1 = queueReceiveDock.items[2];
   }
   if (queueReceiveDock.items[3] !== undefined) {
-    warehouse.ReceiveDock.itemID1 === queueReceiveDock.items[3];
+    warehouse.ReceiveDock.itemID1 = queueReceiveDock.items[3];
   }
   //DISPATCH BUFFER
   if (queueDispatchBuffer.items[0] !== undefined) {
-    warehouse.DispatchBuffer.itemID1 === queueDispatchBuffer.items[0];
+    warehouse.DispatchBuffer.itemID1 = queueDispatchBuffer.items[0];
   }
   if (queueDispatchBuffer.items[1] !== undefined) {
-    warehouse.DispatchBuffer.itemID1 === queueDispatchBuffer.items[1];
+    warehouse.DispatchBuffer.itemID1 = queueDispatchBuffer.items[1];
   }
   if (queueDispatchBuffer.items[2] !== undefined) {
-    warehouse.DispatchBuffer.itemID1 === queueDispatchBuffer.items[2];
+    warehouse.DispatchBuffer.itemID1 = queueDispatchBuffer.items[2];
   }
   if (queueDispatchBuffer.items[3] !== undefined) {
-    warehouse.DispatchBuffer.itemID1 === queueDispatchBuffer.items[3];
+    warehouse.DispatchBuffer.itemID1 = queueDispatchBuffer.items[3];
   }
   //DISPATCH DOCK
   if (queueDispatchDock.items[0] !== undefined) {
-    warehouse.DispatchDock.itemID1 === queueDispatchDock.items[0];
+    warehouse.DispatchDock.itemID1 = queueDispatchDock.items[0];
   }
   if (queueDispatchDock.items[1] !== undefined) {
-    warehouse.DispatchDock.itemID1 === queueDispatchDock.items[1];
+    warehouse.DispatchDock.itemID1 = queueDispatchDock.items[1];
   }
   if (queueDispatchDock.items[2] !== undefined) {
-    warehouse.DispatchDock.itemID1 === queueDispatchDock.items[2];
+    warehouse.DispatchDock.itemID1 = queueDispatchDock.items[2];
   }
   if (queueDispatchDock.items[3] !== undefined) {
-    warehouse.DispatchDock.itemID1 === queueDispatchDock.items[3];
+    warehouse.DispatchDock.itemID1 = queueDispatchDock.items[3];
   }
 
   fs.writeFile("warehouse.json", JSON.stringify(save), function (erreur) {

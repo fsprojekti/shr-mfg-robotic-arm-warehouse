@@ -34,7 +34,7 @@ Order|Task|
 |...|...| 
 |n|task n|
 
-Package management process ensures tasks are executed in right order. Task execution process takes first task from queue and start the process of task execution. It waits for the task completion. After task completion the task is removed from the queue and next task in line is assign for execution.
+Package management process ensures tasks are executed in the right order. Task execution process takes first task from queue and start the process of task execution. It waits for the task completion. After task completion the task is removed from the queue and next task in line is assign for execution.
 
 ```mermaid
 graph  TD
@@ -42,11 +42,11 @@ A[Fetch first task]-->B[Begin execution]-->C{is task <br>completed?}
 C-->|YES|D[remove task from queue]-->A
 ```
 ### Tasks
-There are several type of tasks with specific functionalities.
+There are several types of tasks with specific functionalities.
 
 ### Receive task
 
-Package is being received at *receive dock* (this is where transport stops to unload) and is moved to *receive buffer dock*. Task parameters are described in table
+Package is being received at a *receive dock* (this is where transport stops to unload) and is moved to *receive buffer dock*. Task parameters are described in table
 |Name|Description|
 |---|---|
 |package|id of package to be received by the warehouse|
@@ -65,7 +65,7 @@ Store task moves package from receive buffer dock to specific storing dock. Find
 |receive buffer dock|id of dock where the package waits to be stored|
 |stack type|type of stacking algorithm to calculate optimal storage dock
 
-Store task process is described with flowchart
+Store task process is described with flowchart:
 
 #### Stacking algorithm
 Stacking algorithm calculates the optimal dock where the package will be stored. Optimal solution is based on certain criteria it can be simple like find the first empty dock or it can be more complex like minimizing storage time. 
