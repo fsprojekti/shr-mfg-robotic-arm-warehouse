@@ -107,6 +107,12 @@ app.listen(config.nodejsPort, function () {
     // initialize warehouse state
     warehouse = readWarehouse();
 
+    // create a test request object and add it to the queue
+    let reqObject = {}
+    reqObject.taskId = 1;
+    reqObject.packageId = "abc";
+    reqObject.mode = "load";
+
     console.log('Warehouse Node.js server listening on port ' + config.nodejsPort + '!');
 });
 

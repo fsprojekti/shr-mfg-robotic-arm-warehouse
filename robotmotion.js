@@ -4,7 +4,9 @@ const require = createRequire(import.meta.url);
 const axios = require("axios").default;
 let Promise = require("es6-promise").Promise;
 
-const jetmaxUbuntuServerIpAddress = "localhost:3000";
+const config = require("./config.json");
+
+const jetmaxUbuntuServerIpAddress = config.controlAppUrl;
 
 //QUEUES
 import {
@@ -60,7 +62,7 @@ async function goStorageD1() {
     let X = -115;
     let Y = 70;
     let Z = 215;
-    if (queueStorageDock1.topIndexA === 4 && queueRobot.topIndexR === 1) {
+    if (queueStorageDock1.topIndex === 4 && queueRobot.topIndex === 1) {
         await saveWarehouse();
         await suctionOFF();
         await goReset();
@@ -84,7 +86,7 @@ async function goStorageD2() {
     let X = -115;
     let Y = -20;
     let Z = 215;
-    if (queueStorageDock2.topIndexB === 4 && queueRobot.topIndexR === 1) {
+    if (queueStorageDock2.topIndex === 4 && queueRobot.topIndex === 1) {
         await saveWarehouse();
         await suctionOFF();
         await goReset();
@@ -108,7 +110,7 @@ async function goStorageD3() {
     let X = 115;
     let Y = -20;
     let Z = 215;
-    if (queueStorageDock3.topIndexF === 4 && queueRobot.topIndexR === 1) {
+    if (queueStorageDock3.topIndex === 4 && queueRobot.topIndex === 1) {
         await saveWarehouse();
         await suctionOFF();
         await goReset();
@@ -132,7 +134,7 @@ async function goStorageD4() {
     let X = 115;
     let Y = 65;
     let Z = 215;
-    if (queueStorageDock4.topIndexE === 4 && queueRobot.topIndexR === 1) {
+    if (queueStorageDock4.topIndex === 4 && queueRobot.topIndex === 1) {
         await saveWarehouse();
         await suctionOFF();
         await goReset();
@@ -156,7 +158,7 @@ async function goReceiveBuffer() {
     let X = -125;
     let Y = -110;
     let Z = 215;
-    if (queueReceiveBuffer.topIndexC === 4 && queueRobot.topIndexR === 1) {
+    if (queueReceiveBuffer.topIndex === 4 && queueRobot.topIndex === 1) {
         await saveWarehouse();
         await suctionOFF();
         await goReset();
@@ -177,10 +179,10 @@ async function goReceiveBuffer() {
 //GO G
 async function goDispatchBuffer() {
     localisation = 7;
-    let X = 125;
-    let Y = -110;
-    let Z = 215;
-    if (queueDispatchBuffer.topIndexG === 4 && queueRobot.topIndexR === 1) {
+    let X = 0; //TODO: check
+    let Y = -110; //TODO: check
+    let Z = 215; //TODO: check
+    if (queueDispatchBuffer.topIndex === 4 && queueRobot.topIndex === 1) {
         await saveWarehouse();
         await suctionOFF();
         await goReset();
@@ -201,10 +203,10 @@ async function goDispatchBuffer() {
 //GO D
 async function goReceiveDock() {
     localisation = 4;
-    let X = -125; //TODO
-    let Y = -200; //TODO
-    let Z = 215; //TODO
-    if (queueReceiveDock.topIndexD === 4 && queueRobot.topIndexR === 1) {
+    let X = 0; //TODO: check
+    let Y = -200; //TODO: check
+    let Z = 215; //TODO: check
+    if (queueReceiveDock.topIndex === 4 && queueRobot.topIndex === 1) {
         await saveWarehouse();
         await suctionOFF();
         await goReset();
@@ -228,7 +230,7 @@ async function goDispatchDock() {
     let X = 125; //TODO
     let Y = -200; //TODO
     let Z = 215; //TODO
-    if (queueDispatchDock.topIndexH === 4 && queueRobot.topIndexR === 1) {
+    if (queueDispatchDock.topIndex === 4 && queueRobot.topIndex === 1) {
         await saveWarehouse();
         await suctionOFF();
         await goReset();
@@ -249,23 +251,23 @@ async function goDispatchDock() {
 //SUCTION ON
 async function suctionON() {
     await goDown();
-    if (queueReceiveBuffer.topIndexC === 4 && localisation === 4) {
+    if (queueReceiveBuffer.topIndex === 4 && localisation === 4) {
         await saveWarehouse();
         await goReset();
         throw new Error("RECEIVE BUFFER IS FULL! TASK ABORTED");
     }
     if (
-        queueStorageDock1.topIndexA === 4 &&
-        queueStorageDock2.topIndexB === 4 &&
-        queueStorageDock3.topIndexE === 4 &&
-        queueStorageDock4.topIndexF === 4 &&
+        queueStorageDock1.topIndex === 4 &&
+        queueStorageDock2.topIndex === 4 &&
+        queueStorageDock3.topIndex === 4 &&
+        queueStorageDock4.topIndex === 4 &&
         localisation === 3
     ) {
         await saveWarehouse();
         await goReset();
         throw new Error("STORAGE IS FULL! TASK ABORTED");
     }
-    if (queueDispatchDock.topIndexH === 4 && localisation === 7) {
+    if (queueDispatchDock.topIndex === 4 && localisation === 7) {
         await saveWarehouse();
         await goReset();
         throw new Error("DISPATCH DOCK IS FULL! TASK ABORTED");
@@ -275,12 +277,12 @@ async function suctionON() {
     await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
         params: {msg: {data: true}},
     });
-    if (queueRobot.topIndexR === 1) {
+    if (queueRobot.topIndex === 1) {
         await saveWarehouse();
         throw new Error("The JetMaxRobot already has an item");
     } else {
-        if (localisation === 1 && queueRobot.topIndexR === 0) {
-            if (queueStorageDock1.topIndexA === 0) {
+        if (localisation === 1 && queueRobot.topIndex === 0) {
+            if (queueStorageDock1.topIndex === 0) {
                 await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
                     params: {msg: {data: false}},
                 });
@@ -290,8 +292,8 @@ async function suctionON() {
             await goStorageD1();
             queueRobot.enqueue(queueStorageDock1.dequeue());
         }
-        if (localisation === 2 && queueRobot.topIndexR === 0) {
-            if (queueStorageDock2.topIndexB === 0) {
+        if (localisation === 2 && queueRobot.topIndex === 0) {
+            if (queueStorageDock2.topIndex === 0) {
                 await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
                     params: {msg: {data: false}},
                 });
@@ -301,8 +303,8 @@ async function suctionON() {
             await goStorageD2();
             queueRobot.enqueue(queueStorageDock2.dequeue());
         }
-        if (localisation === 3 && queueRobot.topIndexR === 0) {
-            if (queueReceiveBuffer.topIndexC === 0) {
+        if (localisation === 3 && queueRobot.topIndex === 0) {
+            if (queueReceiveBuffer.topIndex === 0) {
                 await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
                     params: {msg: {data: false}},
                 });
@@ -312,8 +314,8 @@ async function suctionON() {
             await goReceiveBuffer();
             queueRobot.enqueue(queueReceiveBuffer.dequeue());
         }
-        if (localisation === 4 && queueRobot.topIndexR === 0) {
-            if (queueReceiveDock.topIndexD === 0) {
+        if (localisation === 4 && queueRobot.topIndex === 0) {
+            if (queueReceiveDock.topIndex === 0) {
                 await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
                     params: {msg: {data: false}},
                 });
@@ -323,8 +325,8 @@ async function suctionON() {
             await goReceiveDock();
             queueRobot.enqueue(queueReceiveDock.dequeue());
         }
-        if (localisation === 5 && queueRobot.topIndexR === 0) {
-            if (queueStorageDock4.topIndexE === 0) {
+        if (localisation === 5 && queueRobot.topIndex === 0) {
+            if (queueStorageDock4.topIndex === 0) {
                 await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
                     params: {msg: {data: false}},
                 });
@@ -334,8 +336,8 @@ async function suctionON() {
             await goStorageD4();
             queueRobot.enqueue(queueStorageDock4.dequeue());
         }
-        if (localisation === 6 && queueRobot.topIndexR === 0) {
-            if (queueStorageDock3.topIndexF === 0) {
+        if (localisation === 6 && queueRobot.topIndex === 0) {
+            if (queueStorageDock3.topIndex === 0) {
                 await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
                     params: {msg: {data: false}},
                 });
@@ -345,8 +347,8 @@ async function suctionON() {
             await goStorageD3();
             queueRobot.enqueue(queueStorageDock3.dequeue());
         }
-        if (localisation === 7 && queueRobot.topIndexR === 0) {
-            if (queueDispatchBuffer.topIndexG === 0) {
+        if (localisation === 7 && queueRobot.topIndex === 0) {
+            if (queueDispatchBuffer.topIndex === 0) {
                 await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
                     params: {msg: {data: false}},
                 });
@@ -356,8 +358,8 @@ async function suctionON() {
             await goDispatchBuffer();
             queueRobot.enqueue(queueDispatchBuffer.dequeue());
         }
-        if (localisation === 8 && queueRobot.topIndexR === 0) {
-            if (queueDispatchDock.topIndexH === 0) {
+        if (localisation === 8 && queueRobot.topIndex === 0) {
+            if (queueDispatchDock.topIndex === 0) {
                 await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
                     params: {msg: {data: false}},
                 });
@@ -388,43 +390,43 @@ async function suctionOFF() {
     await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/move", {
         params: {msg: {x: 0, y: 0, z: 50}},
     });
-    if (queueRobot.topIndexR === 0) {
+    if (queueRobot.topIndex === 0) {
         await saveWarehouse();
         await goReset();
         throw new Error("There is no item in the robot");
     } else {
-        if (localisation === 0 && queueRobot.topIndexR === 1) {
+        if (localisation === 0 && queueRobot.topIndex === 1) {
             queueRobot.dequeue();
         }
-        if (localisation === 1 && queueRobot.topIndexR === 1) {
+        if (localisation === 1 && queueRobot.topIndex === 1) {
             await goStorageD1();
             queueStorageDock1.enqueue(queueRobot.dequeue());
         }
-        if (localisation === 2 && queueRobot.topIndexR === 1) {
+        if (localisation === 2 && queueRobot.topIndex === 1) {
             await goStorageD2();
             queueStorageDock2.enqueue(queueRobot.dequeue());
         }
-        if (localisation === 3 && queueRobot.topIndexR === 1) {
+        if (localisation === 3 && queueRobot.topIndex === 1) {
             await goReceiveBuffer();
             queueReceiveBuffer.enqueue(queueRobot.dequeue());
         }
-        if (localisation === 4 && queueRobot.topIndexR === 1) {
+        if (localisation === 4 && queueRobot.topIndex === 1) {
             await goReceiveDock();
             queueReceiveDock.enqueue(queueRobot.dequeue());
         }
-        if (localisation === 5 && queueRobot.topIndexR === 1) {
+        if (localisation === 5 && queueRobot.topIndex === 1) {
             await goStorageD4();
             queueStorageDock4.enqueue(queueRobot.dequeue());
         }
-        if (localisation === 6 && queueRobot.topIndexR === 1) {
+        if (localisation === 6 && queueRobot.topIndex === 1) {
             await goStorageD3();
             queueStorageDock3.enqueue(queueRobot.dequeue());
         }
-        if (localisation === 7 && queueRobot.topIndexR === 1) {
+        if (localisation === 7 && queueRobot.topIndex === 1) {
             await goDispatchBuffer();
             queueDispatchBuffer.enqueue(queueRobot.dequeue());
         }
-        if (localisation === 8 && queueRobot.topIndexR === 1) {
+        if (localisation === 8 && queueRobot.topIndex === 1) {
             await goDispatchDock();
             queueDispatchDock.enqueue(queueRobot.dequeue());
         }
@@ -445,72 +447,72 @@ function getLocation() {
 //GO DOWN
 async function goDown() {
     // getLocation();
-    // queueRobot.topIndexR;
-    // queueStorageDock1.topIndexA;
-    // queueStorageDock2.topIndexB;
-    // queueStorageDock3.topIndexF;
-    // queueStorageDock4.topIndexE;
-    // queueReceiveBuffer.topIndexC;
-    // queueDispatchBuffer.topIndexG;
-    // queueDispatchDock.topIndexH;
+    // queueRobot.topIndex;
+    // queueStorageDock1.topIndex;
+    // queueStorageDock2.topIndex;
+    // queueStorageDock3.topIndex;
+    // queueStorageDock4.topIndex;
+    // queueReceiveBuffer.topIndex;
+    // queueDispatchBuffer.topIndex;
+    // queueDispatchDock.topIndex;
     // A
     if (
-        (localisation === 1 && queueStorageDock1.topIndexA === 0) ||
-        (localisation === 2 && queueStorageDock2.topIndexB === 0) ||
-        (localisation === 3 && queueReceiveBuffer.topIndexC === 0) ||
-        (localisation === 4 && queueReceiveDock.topIndexD === 0) ||
-        (localisation === 5 && queueStorageDock4.topIndexE === 0) ||
-        (localisation === 6 && queueStorageDock3.topIndexF === 0) ||
-        (localisation === 7 && queueDispatchBuffer.topIndexG === 0) ||
-        (localisation === 8 && queueDispatchDock.topIndexH === 0)
+        (localisation === 1 && queueStorageDock1.topIndex === 0) ||
+        (localisation === 2 && queueStorageDock2.topIndex === 0) ||
+        (localisation === 3 && queueReceiveBuffer.topIndex === 0) ||
+        (localisation === 4 && queueReceiveDock.topIndex === 0) ||
+        (localisation === 5 && queueStorageDock4.topIndex === 0) ||
+        (localisation === 6 && queueStorageDock3.topIndex === 0) ||
+        (localisation === 7 && queueDispatchBuffer.topIndex === 0) ||
+        (localisation === 8 && queueDispatchDock.topIndex === 0)
     ) {
         await moveDown(1);
     }
     if (
-        (localisation === 1 && queueStorageDock1.topIndexA === 1) ||
-        (localisation === 2 && queueStorageDock2.topIndexB === 1) ||
-        (localisation === 3 && queueReceiveBuffer.topIndexC === 1) ||
-        (localisation === 4 && queueReceiveDock.topIndexD === 1) ||
-        (localisation === 5 && queueStorageDock4.topIndexE === 1) ||
-        (localisation === 6 && queueStorageDock3.topIndexF === 1) ||
-        (localisation === 7 && queueDispatchBuffer.topIndexG === 1) ||
-        (localisation === 8 && queueDispatchDock.topIndexH === 1)
+        (localisation === 1 && queueStorageDock1.topIndex === 1) ||
+        (localisation === 2 && queueStorageDock2.topIndex === 1) ||
+        (localisation === 3 && queueReceiveBuffer.topIndex === 1) ||
+        (localisation === 4 && queueReceiveDock.topIndex === 1) ||
+        (localisation === 5 && queueStorageDock4.topIndex === 1) ||
+        (localisation === 6 && queueStorageDock3.topIndex === 1) ||
+        (localisation === 7 && queueDispatchBuffer.topIndex === 1) ||
+        (localisation === 8 && queueDispatchDock.topIndex === 1)
     ) {
         await moveDown(1);
     }
     if (
-        (localisation === 1 && queueStorageDock1.topIndexA === 2) ||
-        (localisation === 2 && queueStorageDock2.topIndexB === 2) ||
-        (localisation === 3 && queueReceiveBuffer.topIndexC === 2) ||
-        (localisation === 4 && queueReceiveDock.topIndexD === 2) ||
-        (localisation === 5 && queueStorageDock4.topIndexE === 2) ||
-        (localisation === 6 && queueStorageDock3.topIndexF === 2) ||
-        (localisation === 7 && queueDispatchBuffer.topIndexG === 2) ||
-        (localisation === 8 && queueDispatchDock.topIndexH === 2)
+        (localisation === 1 && queueStorageDock1.topIndex === 2) ||
+        (localisation === 2 && queueStorageDock2.topIndex === 2) ||
+        (localisation === 3 && queueReceiveBuffer.topIndex === 2) ||
+        (localisation === 4 && queueReceiveDock.topIndex === 2) ||
+        (localisation === 5 && queueStorageDock4.topIndex === 2) ||
+        (localisation === 6 && queueStorageDock3.topIndex === 2) ||
+        (localisation === 7 && queueDispatchBuffer.topIndex === 2) ||
+        (localisation === 8 && queueDispatchDock.topIndex === 2)
     ) {
         await moveDown(2);
     }
     if (
-        (localisation === 1 && queueStorageDock1.topIndexA === 3) ||
-        (localisation === 2 && queueStorageDock2.topIndexB === 3) ||
-        (localisation === 3 && queueReceiveBuffer.topIndexC === 3) ||
-        (localisation === 4 && queueReceiveDock.topIndexD === 3) ||
-        (localisation === 5 && queueStorageDock4.topIndexE === 3) ||
-        (localisation === 6 && queueStorageDock3.topIndexF === 3) ||
-        (localisation === 7 && queueDispatchBuffer.topIndexG === 3) ||
-        (localisation === 8 && queueDispatchDock.topIndexH === 3)
+        (localisation === 1 && queueStorageDock1.topIndex === 3) ||
+        (localisation === 2 && queueStorageDock2.topIndex === 3) ||
+        (localisation === 3 && queueReceiveBuffer.topIndex === 3) ||
+        (localisation === 4 && queueReceiveDock.topIndex === 3) ||
+        (localisation === 5 && queueStorageDock4.topIndex === 3) ||
+        (localisation === 6 && queueStorageDock3.topIndex === 3) ||
+        (localisation === 7 && queueDispatchBuffer.topIndex === 3) ||
+        (localisation === 8 && queueDispatchDock.topIndex === 3)
     ) {
         await moveDown(3);
     }
     if (
-        (localisation === 1 && queueStorageDock1.topIndexA === 4) ||
-        (localisation === 2 && queueStorageDock2.topIndexB === 4) ||
-        (localisation === 3 && queueReceiveBuffer.topIndexC === 4) ||
-        (localisation === 4 && queueReceiveDock.topIndexD === 4) ||
-        (localisation === 5 && queueStorageDock4.topIndexE === 4) ||
-        (localisation === 6 && queueStorageDock3.topIndexF === 4) ||
-        (localisation === 7 && queueDispatchBuffer.topIndexG === 4) ||
-        (localisation === 8 && queueDispatchDock.topIndexH === 4)
+        (localisation === 1 && queueStorageDock1.topIndex === 4) ||
+        (localisation === 2 && queueStorageDock2.topIndex === 4) ||
+        (localisation === 3 && queueReceiveBuffer.topIndex === 4) ||
+        (localisation === 4 && queueReceiveDock.topIndex === 4) ||
+        (localisation === 5 && queueStorageDock4.topIndex === 4) ||
+        (localisation === 6 && queueStorageDock3.topIndex === 4) ||
+        (localisation === 7 && queueDispatchBuffer.topIndex === 4) ||
+        (localisation === 8 && queueDispatchDock.topIndex === 4)
     ) {
         await moveDown(4);
     }

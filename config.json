@@ -1,5 +1,5 @@
 {
-  "roboticArmIpAddress": "192.168.0.108",
-  "nodejsPort": 3000,
-  "controlAppUrl": "192.168.0.100:3000"
+  "roboticArmIpAddress": "192.168.149.1:3000",
+  "nodejsPort": 3001,
+  "controlAppUrl": "192.168.149.89:3000"
 }
