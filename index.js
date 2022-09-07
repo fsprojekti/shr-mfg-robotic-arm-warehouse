@@ -66,6 +66,9 @@ app.get('/requestsQueue', function (req, res) {
 app.get('/warehouse', function (req, res) {
 
     console.log("received a request to the endpoint /warehouse");
+    warehouse = {"storageDock1": queueStorageDock1, "storageDock2": queueStorageDock2,
+        "storageDock3": queueStorageDock3, "storageDock4": queueStorageDock4,
+        "receiveBuffer": queueReceiveBuffer, "dispatchBuffer": queueDispatchBuffer,}
     res.send(JSON.stringify(warehouse));
 
 });
@@ -105,7 +108,7 @@ app.get('/dispatch', function (req, res) {
 app.listen(config.nodejsPort, function () {
 
     // initialize warehouse state
-    warehouse = readWarehouse();
+    readWarehouse();
 
     // create a test request object and add it to the queue
     let reqObject = {}
@@ -117,7 +120,7 @@ app.listen(config.nodejsPort, function () {
 });
 
 // load a package, from a receive dock to the receive buffer
-async function load() {
+async function load(packageId) {
 
     // let res = [];
 
@@ -127,6 +130,9 @@ async function load() {
         await suctionON();
         await goReceiveBuffer();
         await suctionOFF();
+        // move the package to the receive buffer queue
+        queueReceiveBuffer.enqueue(packageId);
+
         await goReset();
 
         return new Promise((resolve) => {
@@ -159,6 +165,20 @@ async function unload(location) {
             await goDispatchBuffer();
 
         await suctionON();
+        // remove the package from the start location
+        if (location === "D1")
+            queueStorageDock1.dequeue();
+        else if (location === "D2")
+            queueStorageDock2.dequeue();
+        else if (location === "D3")
+            queueStorageDock3.dequeue();
+        else if (location === "D4")
+            queueStorageDock4.dequeue();
+        else if (location === "receiveBuffer")
+            queueReceiveBuffer.dequeue();
+        else if (location === "dispatchBuffer")
+            queueDispatchBuffer.dequeue();
+
         await goDispatchDock();
         await suctionOFF();
         await goReset();
@@ -175,40 +195,89 @@ async function unload(location) {
 }
 
 // move a package from one dock to another
-// // the starting location can be any of the 4 storage docks or of the 2 buffer docks
+// the starting location can be any of the 4 storage docks or of the 2 buffer docks
 async function move(startLocation, itemIndex) {
 
+    let packageId = 0;
+    if (startLocation === "D1") {
+        packageId = queueStorageDock1[itemIndex]
+    } else if (startLocation === "D2") {
+        packageId = queueStorageDock2[itemIndex]
+    } else if (startLocation === "D3") {
+        packageId = queueStorageDock3[itemIndex]
+    } else if (startLocation === "D4") {
+        packageId = queueStorageDock4[itemIndex]
+    } else if (startLocation === "receiveBuffer") {
+        packageId = queueReceiveBuffer[itemIndex]
+    } else if (startLocation === "dispatchBuffer") {
+        packageId = queueDispatchBuffer[itemIndex]
+    }
     let newLocation = await findNewLocation(startLocation);
 
     try {
-        // move to the start location
+
         await goReset();
-        if (startLocation === "D1")
+        // move to the start location
+        if (startLocation === "D1") {
             await goStorageD1();
-        else if (startLocation === "D2")
+        } else if (startLocation === "D2") {
             await goStorageD2();
-        else if (startLocation === "D3")
+        } else if (startLocation === "D3") {
             await goStorageD3();
-        else if (startLocation === "D4")
+        } else if (startLocation === "D4") {
             await goStorageD4();
-        else if (startLocation === "receiveBuffer")
+        } else if (startLocation === "receiveBuffer") {
             await goReceiveBuffer();
-        else if (startLocation === "dispatchBuffer")
+        } else if (startLocation === "dispatchBuffer") {
             await goDispatchBuffer();
+        }
 
         await suctionON();
-
-        // move to the new location
-        if (newLocation === "D1")
-            await goStorageD1();
-        else if (newLocation === "D2")
-            await goStorageD2();
-        else if (newLocation === "D3")
-            await goStorageD3();
-        else if (newLocation === "D4")
-            await goStorageD4();
+        // remove the package from the start location queue
+        if (startLocation === "D1")
+            queueStorageDock1.dequeue();
+        else if (startLocation === "D2")
+            queueStorageDock2.dequeue();
+        else if (startLocation === "D3")
+            queueStorageDock3.dequeue();
+        else if (startLocation === "D4")
+            queueStorageDock4.dequeue();
+        else if (startLocation === "receiveBuffer")
+            queueReceiveBuffer.dequeue();
+        else if (startLocation === "dispatchBuffer")
+            queueDispatchBuffer.dequeue();
 
         await suctionOFF();
+
+        // move the robot arm to the new location
+        if (newLocation === "D1") {
+            await goStorageD1();
+        } else if (newLocation === "D2") {
+            await goStorageD2();
+        } else if (newLocation === "D3") {
+            await goStorageD3();
+        } else if (newLocation === "D4") {
+            await goStorageD4();
+        } else if (newLocation === "receiveBuffer") {
+            await goReceiveBuffer();
+        } else if (newLocation === "dispatchBuffer") {
+            await goDispatchBuffer();
+        }
+
+        // move the package to the new location queue
+        if (newLocation === "D1")
+            queueStorageDock1.enqueue(packageId);
+        else if (newLocation === "D2")
+            queueStorageDock2.enqueue(packageId);
+        else if (newLocation === "D3")
+            queueStorageDock3.enqueue(packageId);
+        else if (newLocation === "D4")
+            queueStorageDock4.enqueue(packageId);
+        else if (newLocation === "receiveBuffer")
+            queueReceiveBuffer.enqueue(packageId);
+        else if (newLocation === "dispatchBuffer")
+            queueDispatchBuffer.enqueue(packageId);
+
         await goReset();
 
         return new Promise((resolve) => {
@@ -269,7 +338,7 @@ setInterval(async function () {
                 // receive buffer is not full, proceed with the load task
                 else {
                     console.log("calling the load() task...");
-                    let loadPromise = load();
+                    let loadPromise = load(task.packageId);
                     loadPromise.then(
                         (data) => {
                             console.log(data);

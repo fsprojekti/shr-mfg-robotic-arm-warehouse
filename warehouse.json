@@ -1,11 +1,10 @@
 {
-  "Robot": {},
-  "StorageDock1": {},
-  "StorageDock2": {},
-  "StorageDock3": {},
-  "StorageDock4": {},
-  "DispatchBuffer": {},
-  "DispatchDock": {},
-  "ReceiveBuffer": {},
-  "ReceiveDock": {}
+  "storageDock1": ["a","b"],
+  "storageDock2": [],
+  "storageDock3": ["c"],
+  "storageDock4": [],
+  "dispatchBuffer": [],
+  "dispatchDock": [],
+  "receiveBuffer": [],
+  "receiveDock": []
 }

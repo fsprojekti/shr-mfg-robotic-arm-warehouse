@@ -11,7 +11,7 @@ import {readWarehouse} from "./warehouse.js";
 async function dispatchTask() {
     await readWarehouse();
     await goReset();
-    while (queueDispatchBuffer.topIndexG > 0) {
+    while (queueDispatchBuffer.topIndex > 0) {
         await goDispatchBuffer();
         await suctionON();
         await goDispatchDock();
