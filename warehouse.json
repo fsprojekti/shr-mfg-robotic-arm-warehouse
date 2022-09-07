@@ -1,1 +1,11 @@
-{"Robot":{},"StorageDock1":{},"StorageDock2":{},"StorageDock3":{},"StorageDock4":{},"DispatchBuffer":{},"DispatchDock":{},"ReceiveBuffer":{},"ReceiveDock":{}}
+{
+  "Robot": {},
+  "StorageDock1": {},
+  "StorageDock2": {},
+  "StorageDock3": {},
+  "StorageDock4": {},
+  "DispatchBuffer": {},
+  "DispatchDock": {},
+  "ReceiveBuffer": {},
+  "ReceiveDock": {}
+}

@@ -425,11 +425,11 @@ function saveWarehouse() {
         warehouse.DispatchDock.itemID1 = queueDispatchDock.items[3];
     }
 
-    fs.writeFile("warehouse.json", JSON.stringify(save), function (erreur) {
-        if (erreur) {
-            console.log(erreur);
-        }
-    });
+    // fs.writeFile("warehouse.json", JSON.stringify(save), function (erreur) {
+    //     if (erreur) {
+    //         console.log(erreur);
+    //     }
+    // });
     return new Promise((resolve) => {
         setTimeout(() => {
             // resolve("resolved");

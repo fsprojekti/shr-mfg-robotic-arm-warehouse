@@ -113,85 +113,107 @@ app.listen(config.nodejsPort, function () {
 // load a package, from a receive dock to the receive buffer
 async function load() {
 
-    let res = null;
+    // let res = [];
+
     try {
-        res = [];
-        res.push(await goReset());
-        res.push(await goReceiveDock());
-        res.push(await suctionON());
-        res.push(await goReceiveBuffer());
-        res.push(await suctionOFF());
-        res.push(await goReset());
+        await goReset();
+        await goReceiveDock();
+        await suctionON();
+        await goReceiveBuffer();
+        await suctionOFF();
+        await goReset();
 
         return new Promise((resolve) => {
             resolve("done");
         });
-    } catch (e) {
-        // console.error("error while doing the LOAD task: " + e);
+    } catch (error) {
+        console.log("error executing the load task");
         return new Promise((resolve, reject) => {
-            reject(e);
+            reject(error);
         });
     }
-
 }
 
 // unload a package - from any of the storage docks, receive buffer or dispatch buffer to the dispatch dock
 async function unload(location) {
 
-    await goReset();
-    if (location === "D1")
-        await goStorageD1();
-    else if (location === "D2")
-        await goStorageD2();
-    else if (location === "D3")
-        await goStorageD3();
-    else if (location === "D4")
-        await goStorageD4();
-    else if (location === "receiveBuffer")
-        await goReceiveBuffer();
-    else if (location === "dispatchBuffer")
-        await goDispatchBuffer();
+    try {
+        await goReset();
+        if (location === "D1")
+            await goStorageD1();
+        else if (location === "D2")
+            await goStorageD2();
+        else if (location === "D3")
+            await goStorageD3();
+        else if (location === "D4")
+            await goStorageD4();
+        else if (location === "receiveBuffer")
+            await goReceiveBuffer();
+        else if (location === "dispatchBuffer")
+            await goDispatchBuffer();
 
-    await suctionON();
-    await goDispatchDock();
-    await suctionOFF();
-    await goReset();
+        await suctionON();
+        await goDispatchDock();
+        await suctionOFF();
+        await goReset();
+
+        return new Promise((resolve) => {
+            resolve("done");
+        });
+    } catch (error) {
+        console.log("error executing the unload task");
+        return new Promise((resolve, reject) => {
+            reject(error);
+        });
+    }
 }
 
-
+// move a package from one dock to another
+// // the starting location can be any of the 4 storage docks or of the 2 buffer docks
 async function move(startLocation, itemIndex) {
 
     let newLocation = await findNewLocation(startLocation);
 
-    // move to the start location
-    await goReset();
-    if (startLocation === "D1")
-        await goStorageD1();
-    else if (startLocation === "D2")
-        await goStorageD2();
-    else if (startLocation === "D3")
-        await goStorageD3();
-    else if (startLocation === "D4")
-        await goStorageD4();
-    else if (startLocation === "receiveBuffer")
-        await goReceiveBuffer();
-    else if (startLocation === "dispatchBuffer")
-        await goDispatchBuffer();
+    try {
+        // move to the start location
+        await goReset();
+        if (startLocation === "D1")
+            await goStorageD1();
+        else if (startLocation === "D2")
+            await goStorageD2();
+        else if (startLocation === "D3")
+            await goStorageD3();
+        else if (startLocation === "D4")
+            await goStorageD4();
+        else if (startLocation === "receiveBuffer")
+            await goReceiveBuffer();
+        else if (startLocation === "dispatchBuffer")
+            await goDispatchBuffer();
 
-    await suctionON();
+        await suctionON();
 
-    // move to the new location
-    if (newLocation === "D1")
-        await goStorageD1();
-    else if (newLocation === "D2")
-        await goStorageD2();
-    else if (newLocation === "D3")
-        await goStorageD3();
-    else if (newLocation === "D4")
-        await goStorageD4();
+        // move to the new location
+        if (newLocation === "D1")
+            await goStorageD1();
+        else if (newLocation === "D2")
+            await goStorageD2();
+        else if (newLocation === "D3")
+            await goStorageD3();
+        else if (newLocation === "D4")
+            await goStorageD4();
 
-    await suctionOFF();
-    await goReset();
+        await suctionOFF();
+        await goReset();
+
+        return new Promise((resolve) => {
+            resolve("done");
+        });
+    } catch (error) {
+        console.log("error executing the move task");
+        return new Promise((resolve, reject) => {
+            reject(error);
+        });
+    }
 }
 
 // find a best location for a package move
@@ -248,7 +270,7 @@ setInterval(async function () {
                             console.log("load task " + task.taskId + " successfully finished, calling control app /dispatchFinished");
 
                             // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
-                            let axiosPromise = axios.get(config.controlAppUrl + "/dispatchFinished", {
+                            let axiosPromise = axios.get("http://" + config.controlAppUrl + "/dispatchFinished", {
                                 params: {taskId: tasksQueue[0].taskId},
                             });
                             axiosPromise.then(
@@ -265,7 +287,7 @@ setInterval(async function () {
                         },
                         (error) => {
                             console.log("error while doing the LOAD task, task remains in the queue");
-                            console.log(error);
+                            // console.log(error);
                         }
                     )
                 }
@@ -429,27 +451,27 @@ setInterval(async function () {
                 // if the package is in the storage, proceed with the task
                 if (promiseArray.length > 0) {
                     Promise.all(promiseArray)
-                        .then((success) => {
+                        .then(() => {
                                 console.log("the unload task successfully finished, removing the task from the queue")
                                 // remove the task from the queue
                                 tasksQueue.shift();
                             },
                             (error) => {
                                 console.log("error while doing the unload task, task remains in the queue");
-                                console.log("error");
+                                console.log(error);
                             })
                 }
             } else if (task.mode === "move") {
 
                 let promiseMove = move(task.packageDock, task.dockPosition)
-                promiseMove.then((success) => {
+                promiseMove.then(() => {
                     console.log("the move task successfully finished, removing the task from the queue")
                     // remove the task from the queue
                     tasksQueue.shift();
 
                 }, (error) => {
                     console.log("error while doing the move task, task remains in the queue");
-                    console.log("error");
+                    console.log(error);
                 })
             }
         } else {
