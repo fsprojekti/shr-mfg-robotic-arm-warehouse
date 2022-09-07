@@ -1,83 +1,48 @@
-import WebSocket from 'ws';
-// define require because this app is now defined as a "module" type
 import {createRequire} from "module";
+// define require because this app is now defined as a "module" type
 
 const require = createRequire(import.meta.url);
+
 const express = require('express');
 const app = express();
+const axios = require('axios').default;
+let Promise = require("es6-promise").Promise;
 
 // add timestamps in front of all log messages
 require('console-stamp')(console, '[HH:MM:ss.l]');
 
 // open file with configuration data
-const fs = require('fs');
+//const fs = require('fs');
 const config = require("./config.json");
 
-// ########## global variables
-let jetmaxState = {};
+import {
+    goStorageD1,
+    goStorageD2,
+    goStorageD3,
+    goStorageD4,
+    goReset,
+    goReceiveDock,
+    goReceiveBuffer,
+    goDispatchDock,
+    goDispatchBuffer,
+    suctionON,
+    suctionOFF,
+    queueStorageDock1,
+    queueStorageDock2,
+    queueStorageDock3,
+    queueStorageDock4,
+    queueReceiveBuffer,
+    queueDispatchBuffer
+} from "./robotmotion.js";
 
-// create a websocket connection to the jetmax socket server
-const jetmaxWebSocketServer = 'ws:' + config.roboticArmIpAddress + ":9090";
-console.log(jetmaxWebSocketServer);
-const ws = new WebSocket(jetmaxWebSocketServer);
+//Warehouse
+import {readWarehouse, saveWarehouse, stateWarehouse} from "./warehouse.js";
+// import {Promise} from "es6-promise";
 
-// print a message when a successful connection to the socket server is made
-ws.on('open', function open() {
-
-    console.log("Connection to server " + jetmaxWebSocketServer + " successful.");
-
-    // SUBSCRIBE TO ALL RELEVANT TOPICS:
-    //  /jetmax/status/
-    let subData = subscribeData("id1", "/jetmax/status", "jetmax_control/JetMax", "none", 0, 0);
-    console.log("subscribe data sent: " + JSON.stringify(subData));
-    ws.send(JSON.stringify(subData));
-
-    // ADVERTISE ALL RELEVANT TOPICS
-    // advertise the /jetmax/speed_command
-    let advData = advertiseData("advertise:/moveTo", "/jetmax/speed_command", "jetmax/SetJetMax", false, 100);
-    console.log("advertise data sent: " + JSON.stringify(advData));
-    ws.send(JSON.stringify(advData));
-
-    // advertise the /jetmax/relative_command
-    advData = advertiseData("advertise:/move", "/jetmax/relative_command", "jetmax/SetJetMax", false, 100);
-    console.log("advertise data sent: " + JSON.stringify(advData));
-    ws.send(JSON.stringify(advData));
-
-    // advertise the /jetmax/end_effector/sucker/command
-    advData = advertiseData("advertise:/suction", "/jetmax/end_effector/sucker/command", "std_msgs/Bool", false, 100);
-    console.log("advertise data sent: " + JSON.stringify(advData));
-    ws.send(JSON.stringify(advData));
-
-})
-
-// handle a message event
-ws.on('message', function message(data) {
-
-    let dataJson = JSON.parse(data);
-    //console.log(dataJson);
-
-    // for now only the /jetmax/status message is expected to arrive
-    if (dataJson.topic === '/jetmax/status') {
-        // update local variable for jetmax robot arm state - used by the /basic/state endpoint
-        jetmaxState = dataJson.msg;
-    }
-})
-
-// handle an error event
-ws.on('error', function error(error) {
-    console.log("Error communication with the websocket server, reason: " + error);
-})
-
-// handle a close event
-ws.on('close', function close(code) {
-    console.log("Websocket server connection closed, the code: " + code);
-})
-
-// handle an unexpected_response event
-ws.on('unexpected_response', function error(req, res) {
-    console.log("Unexpected response from the websocket server: " + res);
-})
-
+// global variables
+let busy = false;
+let tasksQueue = [];
+let warehouse = {};
 
 // #### API ENDPOINTS ####
 
@@ -85,190 +50,475 @@ ws.on('unexpected_response', function error(req, res) {
 app.get('/', function (req, res) {
 
     console.log("Received a request to the endpoint /");
-    res.send("JetMax Node.js server is up and running.");
+    res.send("Warehouse Node.js server is up and running.");
 
 });
 
-// API endpoint that returns current jetmax state
-// jetmax state is retrieved from jetmax ros system via websocket
-// data included: msg data from the /jetmax/status response, includes x, y and z coordinates of the robot arm, states of all 3 servos and joints, state of 2 PWMs and the sucker etc.
-app.get('/basic/state', function (req, res) {
+// API endpoint that returns current value of the requests queue
+app.get('/requestsQueue', function (req, res) {
 
-    console.log("received a request to the endpoint /basic/state");
-    res.send(JSON.stringify(jetmaxState));
+    console.log("received a request to the endpoint /requestsQueue");
+    res.send(JSON.stringify(tasksQueue));
 
 });
 
-// API endpoint that moves jetmax to a specific location (absolute)
-app.get('/basic/moveTo', function (req, res) {
+// API endpoint that returns current state of the warehouse
+app.get('/warehouse', function (req, res) {
 
-    console.log("received a request to the endpoint /basic/moveTo");
+    console.log("received a request to the endpoint /warehouse");
+    res.send(JSON.stringify(warehouse));
 
-    if (!req.query.msg) {
-        console.log("Error, missing msg parameter.");
-        res.send("Error, missing msg parameter.");
+});
+
+// API endpoint called by a control app to request a dispatch
+app.get('/dispatch', function (req, res) {
+
+    console.log("received a request to the endpoint /dispatch");
+
+    if (!req.query.packageId || !req.query.taskId || !req.query.mode) {
+        console.log("Error, missing packageId and/or taskId and/or mode");
+        res.send({"state": "reject, missing packageId and/or taskId and/or mode"});
     } else {
-        // extract data from the request = location to move the robot arm to {{"x":-14,"y":-117,"z":100"}
-        let msg = JSON.parse(req.query.msg);
-        // add the duration parameter
-        msg.duration = 100; // this is the default value for absolute movements
 
-        //send the publish message
-        let pubData = publishData("publish:/moveTo", "/jetmax/speed_command", msg, false);
-        console.log("publish data sent: " + JSON.stringify(pubData));
-        ws.send(JSON.stringify(pubData))
+        console.log(req.query);
 
-        res.send("/basic/moveTo endpoint completed successfully");
-    }
+        // extract data from the request = source and target locations for the requested transfer
+        let packageId = req.query.packageId;
+        let taskId = req.query.taskId;
+        let mode = req.query.mode;
 
-});
+        // create a request object and add it to the queue
+        let reqObject = {}
+        reqObject.taskId = taskId;
+        reqObject.packageId = packageId;
+        reqObject.mode = mode;
 
-// API endpoint that moves jetmax from current location (relative)
-app.get('/basic/move', function (req, res) {
+        let queueIndex = tasksQueue.push(reqObject);
 
-    console.log("received a request to the endpoint /basic/move");
+        console.log("Current tasks queue:" + JSON.stringify(tasksQueue));
 
-    if (!req.query.msg) {
-        console.log("Error, missing msg parameter.");
-        res.send("Error, missing msg parameter.");
-    } else {
-        // extract data from the request = relative movement of the robot arm to {{"x":-14,"y":-117,"z":100"}
-        let msg = JSON.parse(req.query.msg);
-        // add the duration parameter
-        msg.duration = 0.5; // this is the default value for relative movements
-
-        // send the publish message
-        let pubData = publishData("publish:/moveTo", "/jetmax/relative_command", msg, false);
-        console.log("publish data sent: " + JSON.stringify(pubData));
-        ws.send(JSON.stringify(pubData))
-
-        res.send("/basic/suction endpoint completed successfully");
-    }
-
-});
-
-// API endpoint that turns jetmax end effector suction on or off
-app.get('/basic/suction', function (req, res) {
-
-    console.log("received a request to the endpoint /basic/suction");
-
-    if (!req.query.msg) {
-        console.log("Error, missing msg parameter.");
-        res.send("Error, missing msg parameter.");
-    } else {
-        // extract data from the request = relative movement of the robot arm to {{"x":-14,"y":-117,"z":100"}
-        let msg = JSON.parse(req.query.msg);
-
-        // send the publish message
-        let pubData = publishData("publish:/suction", "/jetmax/end_effector/sucker/command", msg, false);
-        console.log("publish data sent: " + JSON.stringify(pubData));
-        ws.send(JSON.stringify(pubData))
-
-        res.send("/basic/move endpoint completed successfully");
+        res.send({"state": "accept", "queueIndex": queueIndex});
     }
 });
-
-// // websocket server path that can be called
-// app.ws('/', function (ws, req) {
-//
-//     ws.on('message', function (msg) {
-//         console.log(msg);
-//     });
-// });
 
 // start the server
 app.listen(config.nodejsPort, function () {
 
-    console.log('JetMax Node.js server listening on port ' + config.nodejsPort + '!');
+    // initialize warehouse state
+    warehouse = readWarehouse();
+
+    console.log('Warehouse Node.js server listening on port ' + config.nodejsPort + '!');
 });
 
-// ######### HELPER FUNCTIONS to build subscribe, advertise and publish message for JetMax ROS server
+// load a package, from a receive dock to the receive buffer
+async function load() {
 
-/* BUILD SUBSCRIBE MESSAGE
-op: name of the operation = subscribe
-id: id of the message
-topic: topic to which it is subscribing
-type: type of the topic to which it is subscribing
-compression: optional, default: "none"
-throttle_rate: optional, default: 0
-queue_length: optional, default: 0
- */
-function subscribeData(id, topic, type, compression, throttle_rate, queue_length) {
+    let res = null;
+    try {
+        res = [];
+        res.push(await goReset());
+        res.push(await goReceiveDock());
+        res.push(await suctionON());
+        res.push(await goReceiveBuffer());
+        res.push(await suctionOFF());
+        res.push(await goReset());
 
-    let data = {};
-    data.op = "subscribe";
-    data.id = id;
-    data.topic = topic;
-    data.type = type;
-    data.compression = compression;
-    data.throttle_rate = throttle_rate;
-    data.queue_length = queue_length;
-
-    //console.log(data);
-    return data;
+        return new Promise((resolve) => {
+            resolve("done");
+        });
+    } catch (e) {
+        // console.error("error while doing the LOAD task: " + e);
+        return new Promise((resolve, reject) => {
+            reject(e);
+        });
+    }
 
 }
 
-/* BUILD ADVERTISE MESSAGE DATA
-op: name of the operation = advertise
-id: id of the message
-topic: topic that it is advertising
-type: type of the topic that it is advertising
-latch: optional, default: false
-queue_size: optional, default: 100
- */
-function advertiseData(id, topic, type, latch, queue_size) {
+// unload a package - from any of the storage docks, receive buffer or dispatch buffer to the dispatch dock
+async function unload(location) {
 
-    let data = {};
-    data.op = "advertise";
-    data.id = id;
-    data.topic = topic;
-    data.type = type;
-    data.latch = latch;
-    data.queue_size = queue_size;
+    await goReset();
+    if (location === "D1")
+        await goStorageD1();
+    else if (location === "D2")
+        await goStorageD2();
+    else if (location === "D3")
+        await goStorageD3();
+    else if (location === "D4")
+        await goStorageD4();
+    else if (location === "receiveBuffer")
+        await goReceiveBuffer();
+    else if (location === "dispatchBuffer")
+        await goDispatchBuffer();
 
-    //console.log(data);
-    return data;
+    await suctionON();
+    await goDispatchDock();
+    await suctionOFF();
+    await goReset();
+}
+
+
+async function move(startLocation, itemIndex) {
+
+    let newLocation = await findNewLocation(startLocation);
+
+    // move to the start location
+    await goReset();
+    if (startLocation === "D1")
+        await goStorageD1();
+    else if (startLocation === "D2")
+        await goStorageD2();
+    else if (startLocation === "D3")
+        await goStorageD3();
+    else if (startLocation === "D4")
+        await goStorageD4();
+    else if (startLocation === "receiveBuffer")
+        await goReceiveBuffer();
+    else if (startLocation === "dispatchBuffer")
+        await goDispatchBuffer();
+
+    await suctionON();
+
+    // move to the new location
+    if (newLocation === "D1")
+        await goStorageD1();
+    else if (newLocation === "D2")
+        await goStorageD2();
+    else if (newLocation === "D3")
+        await goStorageD3();
+    else if (newLocation === "D4")
+        await goStorageD4();
+
+    await suctionOFF();
+    await goReset();
+}
+
+// find a best location for a package move
+async function findNewLocation(currentLocation) {
+
+    let newLocation;
+    let queues = [
+        {"location": "D1", "topIndex": queueStorageDock1.topIndex},
+        {"location": "D2", "topIndex": queueStorageDock2.topIndex},
+        {"location": "D3", "topIndex": queueStorageDock3.topIndex},
+        {"location": "D4", "topIndex": queueStorageDock4.topIndex},
+    ];
+    // remove data for current location
+    let queuesReduced = queues.filter(object => {
+        return object.location !== currentLocation
+    });
+
+    let min = (a, f) => a.reduce((m, x) => m[f] < x[f] ? m : x);
+
+    newLocation = min(queuesReduced, "topIndex")["location"];
+
+    return newLocation;
+
 
 }
 
-/* BUILD PUBLISH MESSAGE DATA
-op: name of the operation = publish
-id: id of the message
-topic: topic to which it is publishing
-msg: data in JSON format, dependent on the topic
-latch: optional, default: false
- */
-function publishData(id, topic, msg, latch) {
+// periodically check the tasks queue and order a transfer (move)
+setInterval(async function () {
 
-    let data = {};
-    data.op = "publish";
-    data.id = id;
-    data.topic = topic;
-    data.msg = msg;
-    data.latch = latch;
+    // check if there is any task in the queue
+    if (tasksQueue.length > 0) {
+        console.log("tasks queue not empty")
+        // if the robot arm is not busy doing a task, start a new task
+        if (!busy) {
+            console.log("robot arm not busy, started processing a task...")
+            // take the first task from the queue (FIFO)
+            let task = tasksQueue[0];
+            console.log("processing task: " + task);
 
-    // console.log(data);
-    return data;
+            // if the task is to load a package from a car to the storage
+            if (task.mode === "load") {
+                console.log("task mode is load");
 
-}
+                // first check if the receive buffer is full
+                if (queueReceiveBuffer.getSize() === 4)
+                    console.log("error, receive buffer is full, load task not performed");
+                // receive buffer is not full, proceed with the load task
+                else {
+                    console.log("calling the load() task...");
+                    let loadPromise = load();
+                    loadPromise.then(
+                        (data) => {
+                            console.log(data);
+                            console.log("load task " + task.taskId + " successfully finished, calling control app /dispatchFinished");
 
-/* BUILD CALL SERVICE MESSAGE DATA
-op: name of the operation = call_service
-id: id of the message
-service: name of the service that is called
-args: optional, default: {}
- */
-function callServiceData(id, service, type, args) {
+                            // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
+                            let axiosPromise = axios.get(config.controlAppUrl + "/dispatchFinished", {
+                                params: {taskId: tasksQueue[0].taskId},
+                            });
+                            axiosPromise.then(
+                                (data) => {
+                                    console.log(data);
+                                    console.log("/dispatchFinished successfully called, removing a task from the queue")
+                                    tasksQueue.shift();
+                                },
+                                (error) => {
+                                    console.log("error calling control app, task remains in the queue");
+                                    console.log(error);
+                                }
+                            )
+                        },
+                        (error) => {
+                            console.log("error while doing the LOAD task, task remains in the queue");
+                            console.log(error);
+                        }
+                    )
+                }
+            } else if (task.mode === "unload") {
 
-    let data = {};
-    data.op = "call_service";
-    data.id = id;
-    data.service = service;
-    data.type = type;
-    data.args = args;
+                let itemIndex;
+                // this array holds all the promises for async functions calls, it is constructed depending on the start
+                // location of the package, and at the end Promise.all is called
+                let promiseArray = []
+                // first check if the package is actually in the storage
+                // check each of six docks where the package could potentially be stored
+                if ((itemIndex = queueStorageDock1.items.indexOf(task.packageId)) !== -1) {
+                    // package is in the storage dock D1
+                    let currentTopPackageIndex = queueStorageDock1.topIndex;
 
-    //console.log(data);
-    return data;
+                    // check if the package is at the top of the dock
+                    if ((currentTopPackageIndex - itemIndex) === 3) {
+                        // move 3 packages
+                        promiseArray.push(move("D1", currentTopPackageIndex));
+                        promiseArray.push(move("D1", currentTopPackageIndex - 1));
+                        promiseArray.push(move("D1", currentTopPackageIndex - 2));
+                    } else if ((currentTopPackageIndex - itemIndex) === 2) {
+                        // move 2 packages
+                        promiseArray.push(move("D1", currentTopPackageIndex));
+                        promiseArray.push(move("D1", currentTopPackageIndex - 1));
+                    } else if ((currentTopPackageIndex - itemIndex) === 1) {
+                        // move 1 package
+                        promiseArray.push(move("D1", currentTopPackageIndex));
+                    }
+                    promiseArray.push(unload("D1"))
 
-}
+                    // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
+                    promiseArray.push(axios.get(config.controlAppUrl + "/dispatchFinished", {
+                        params: {taskId: tasksQueue[0].taskId}
+                    }));
+
+                } else if (queueStorageDock2.items.indexOf(task.packageId) !== -1) {
+                    // package is in the storage dock D2
+                    let currentTopPackageIndex = queueStorageDock2.topIndex;
+                    // check if the package is at the top of the dock
+                    if ((currentTopPackageIndex - itemIndex) === 3) {
+                        // move 3 packages
+                        promiseArray.push(move("D2", currentTopPackageIndex));
+                        promiseArray.push(move("D2", currentTopPackageIndex - 1));
+                        promiseArray.push(move("D2", currentTopPackageIndex - 2));
+                    } else if ((currentTopPackageIndex - itemIndex) === 2) {
+                        // move 2 packages
+                        promiseArray.push(move("D2", currentTopPackageIndex));
+                        promiseArray.push(move("D2", currentTopPackageIndex - 1));
+                    } else if ((currentTopPackageIndex - itemIndex) === 1) {
+                        // move 1 package
+                        promiseArray.push(move("D2", currentTopPackageIndex));
+                    }
+                    promiseArray.push(unload("D2"))
+
+                    // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
+                    promiseArray.push(axios.get(config.controlAppUrl + "/dispatchFinished", {
+                        params: {taskId: tasksQueue[0].taskId}
+                    }));
+
+                } else if (queueStorageDock3.items.indexOf(task.packageId) !== -1) {
+                    // package is in the storage dock D3
+                    let currentTopPackageIndex = queueStorageDock3.topIndex;
+                    // check if the package is at the top of the dock
+                    if ((currentTopPackageIndex - itemIndex) === 3) {
+                        // move 3 packages
+                        promiseArray.push(move("D3", currentTopPackageIndex));
+                        promiseArray.push(move("D3", currentTopPackageIndex - 1));
+                        promiseArray.push(move("D3", currentTopPackageIndex - 2));
+                    } else if ((currentTopPackageIndex - itemIndex) === 2) {
+                        // move 2 packages
+                        promiseArray.push(move("D3", currentTopPackageIndex));
+                        promiseArray.push(move("D3", currentTopPackageIndex - 1));
+                    } else if ((currentTopPackageIndex - itemIndex) === 1) {
+                        // move 1 package
+                        promiseArray.push(move("D3", currentTopPackageIndex));
+                    }
+                    promiseArray.push(unload("D1"))
+
+                    // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
+                    promiseArray.push(axios.get(config.controlAppUrl + "/dispatchFinished", {
+                        params: {taskId: tasksQueue[0].taskId}
+                    }));
+
+                } else if (queueStorageDock4.items.indexOf(task.packageId) !== -1) {
+                    // package is in the storage dock D4
+                    let currentTopPackageIndex = queueStorageDock4.topIndex;
+                    // check if the package is at the top of the dock
+                    if ((currentTopPackageIndex - itemIndex) === 3) {
+                        // move 3 packages
+                        promiseArray.push(move("D4", currentTopPackageIndex));
+                        promiseArray.push(move("D4", currentTopPackageIndex - 1));
+                        promiseArray.push(move("D4", currentTopPackageIndex - 2));
+                    } else if ((currentTopPackageIndex - itemIndex) === 2) {
+                        // move 2 packages
+                        promiseArray.push(move("D4", currentTopPackageIndex));
+                        promiseArray.push(move("D4", currentTopPackageIndex - 1));
+                    } else if ((currentTopPackageIndex - itemIndex) === 1) {
+                        // move 1 package
+                        promiseArray.push(move("D4", currentTopPackageIndex));
+                    }
+                    promiseArray.push(unload("D4"))
+
+                    // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
+                    promiseArray.push(axios.get(config.controlAppUrl + "/dispatchFinished", {
+                        params: {taskId: tasksQueue[0].taskId}
+                    }));
+
+                } else if (queueReceiveBuffer.items.indexOf(task.packageId) !== -1) {
+                    // package is in the receive buffer
+                    let currentTopPackageIndex = queueReceiveBuffer.topIndex;
+                    // check if the package is at the top of the dock
+                    if ((currentTopPackageIndex - itemIndex) === 3) {
+                        // move 3 packages
+                        promiseArray.push(move("receiveBuffer", currentTopPackageIndex));
+                        promiseArray.push(move("receiveBuffer", currentTopPackageIndex - 1));
+                        promiseArray.push(move("receiveBuffer", currentTopPackageIndex - 2));
+                    } else if ((currentTopPackageIndex - itemIndex) === 2) {
+                        // move 2 packages
+                        promiseArray.push(move("receiveBuffer", currentTopPackageIndex));
+                        promiseArray.push(move("receiveBuffer", currentTopPackageIndex - 1));
+                    } else if ((currentTopPackageIndex - itemIndex) === 1) {
+                        // move 1 package
+                        promiseArray.push(move("receiveBuffer", currentTopPackageIndex));
+                    }
+                    promiseArray.push(unload("receiveBuffer"))
+
+                    // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
+                    promiseArray.push(axios.get(config.controlAppUrl + "/dispatchFinished", {
+                        params: {taskId: tasksQueue[0].taskId}
+                    }));
+
+                } else if (queueDispatchBuffer.items.indexOf(task.packageId) !== -1) {
+                    // package is in the dispatch buffer
+                    let currentTopPackageIndex = queueDispatchBuffer.topIndex;
+                    // check if the package is at the top of the dock
+                    if ((currentTopPackageIndex - itemIndex) === 3) {
+                        // move 3 packages
+                        promiseArray.push(move("dispatchBuffer", currentTopPackageIndex));
+                        promiseArray.push(move("dispatchBuffer", currentTopPackageIndex - 1));
+                        promiseArray.push(move("dispatchBuffer", currentTopPackageIndex - 2));
+                    } else if ((currentTopPackageIndex - itemIndex) === 2) {
+                        // move 2 packages
+                        promiseArray.push(move("dispatchBuffer", currentTopPackageIndex));
+                        promiseArray.push(move("dispatchBuffer", currentTopPackageIndex - 1));
+                    } else if ((currentTopPackageIndex - itemIndex) === 1) {
+                        // move 1 package
+                        promiseArray.push(move("dispatchBuffer", currentTopPackageIndex));
+
+                    }
+                    promiseArray.push(unload("dispatchBuffer"))
+
+                    // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
+                    promiseArray.push(axios.get(config.controlAppUrl + "/dispatchFinished", {
+                        params: {taskId: tasksQueue[0].taskId}
+                    }));
+
+                } else {
+                    console.log("error, the package is not in the storage")
+                }
+                // if the package is in the storage, proceed with the task
+                if (promiseArray.length > 0) {
+                    Promise.all(promiseArray)
+                        .then((success) => {
+                                console.log("the unload task successfully finished, removing the task from the queue")
+                                // remove the task from the queue
+                                tasksQueue.shift();
+                            },
+                            (error) => {
+                                console.log("error while doing the unload task, task remains in the queue");
+                                console.log("error");
+                            })
+                }
+            } else if (task.mode === "move") {
+
+                let promiseMove = move(task.packageDock, task.dockPosition)
+                promiseMove.then((success) => {
+                    console.log("the move task successfully finished, removing the task from the queue")
+                    // remove the task from the queue
+                    tasksQueue.shift();
+
+                }, (error) => {
+                    console.log("error while doing the move task, task remains in the queue");
+                    console.log("error");
+                })
+            }
+        } else {
+            console.log("robot arm is busy, task not started");
+        }
+    } else {
+        console.log("task management: there are no tasks in the queue");
+    }
+}, 5000);
+
+// function that periodically checks if receive and dispatch buffers are too full, generates "move" tasks and
+//      ads them to the tasksQueue
+// packages are moved if more than two packages are currently in the queue
+setInterval(function () {
+
+    let receiveCounter = 0;
+    let dispatchCounter = 0;
+
+    // RECEIVE BUFFER
+    if (queueReceiveBuffer.getSize() > 2) {
+        // create a request object for package in position 3 (index === 2) and add it to the queue
+        let reqObject = {}
+        reqObject.taskId = "null";
+        reqObject.packageId = queueReceiveBuffer[2];
+        reqObject.packageDock = "receiveBuffer";
+        reqObject.dockPosition = 2;
+        reqObject.mode = "move";
+        tasksQueue.push(reqObject);
+        receiveCounter++;
+    }
+    if (queueReceiveBuffer.getSize() > 3) {
+        // create a request object for package in position 4 (index === 3) and add it to the queue
+        let reqObject = {}
+        reqObject.taskId = "null";
+        reqObject.packageId = queueReceiveBuffer[3];
+        reqObject.packageDock = "receiveBuffer";
+        reqObject.dockPosition = 3;
+        reqObject.mode = "move";
+        tasksQueue.push(reqObject);
+        receiveCounter++;
+    }
+
+    // DISPATCH BUFFER
+    if (queueDispatchBuffer.getSize() > 2) {
+        // create a request object for package in position 3 (index === 2) and add it to the queue
+        let reqObject = {}
+        reqObject.taskId = 0;
+        reqObject.packageId = queueDispatchBuffer[2];
+        reqObject.packageDock = "dispatchBuffer";
+        reqObject.dockPosition = 2;
+        reqObject.mode = "move";
+        tasksQueue.push(reqObject);
+        dispatchCounter++;
+    }
+    if (queueDispatchBuffer.getSize() > 3) {
+        // create a request object for package in position 4 (index === 3) and add it to the queue
+        let reqObject = {}
+        reqObject.taskId = 0;
+        reqObject.packageId = queueDispatchBuffer[3];
+        reqObject.packageDock = "dispatchBuffer";
+        reqObject.dockPosition = 3;
+        reqObject.mode = "move";
+        tasksQueue.push(reqObject);
+        dispatchCounter++;
+    }
+
+    if (receiveCounter !== 0 || dispatchCounter !== 0) {
+        console.log(receiveCounter + " moves from receiveBuffer and " + dispatchCounter + " moves " +
+            "from dispatchCounter added to the tasksQueue");
+    }
+
+}, 5000)
