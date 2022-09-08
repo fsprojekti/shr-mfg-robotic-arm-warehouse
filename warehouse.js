@@ -3,17 +3,30 @@ import {createRequire} from "module";
 const require = createRequire(import.meta.url);
 const fs = require("fs");
 
+//QUEUES
 import {
-    queueDispatchBuffer,
-    queueDispatchDock,
-    queueReceiveBuffer,
-    queueReceiveDock,
-    queueStorageDock1,
-    queueStorageDock2,
-    queueStorageDock3,
-    queueStorageDock4,
-    // queueRobot,
-} from "./robotmotion.js";
+    QueueA,
+    QueueB,
+    QueueC,
+    QueueD,
+    QueueE,
+    QueueF,
+    QueueG,
+    QueueH,
+    // QueueRobot,
+} from "./queuelifo.js";
+
+const queueStorageDock1 = new QueueA();
+const queueStorageDock2 = new QueueB();
+const queueReceiveBuffer = new QueueC();
+const queueReceiveDock = new QueueD();
+const queueStorageDock4 = new QueueE();
+const queueStorageDock3 = new QueueF();
+const queueDispatchBuffer = new QueueG();
+const queueDispatchDock = new QueueH();
+// const queueRobot = new QueueRobot();
+
+let location = "reset";
 
 function stateWarehouse() {
     if (queueStorageDock1.topIndex !== 0) {
@@ -188,21 +201,77 @@ function readWarehouse() {
         queueReceiveDock.enqueue(warehouse.receiveDock[3]);
     }
 
+    let warehouseObj = {
+        "storageDock1": queueStorageDock1, "storageDock2": queueStorageDock2,
+        "storageDock3": queueStorageDock3, "storageDock4": queueStorageDock4,
+        "receiveBuffer": queueReceiveBuffer, "dispatchBuffer": queueDispatchBuffer,
+    }
+    console.log("warehouse read: " + JSON.stringify(warehouseObj));
 }
 
 function saveWarehouse() {
 
-    let saveDataObject = {
-        storageDock1: [queueStorageDock1.items[0], queueStorageDock1.items[1],  queueStorageDock1.items[2], queueStorageDock1.items[3]],
-        storageDock2: [queueStorageDock2.items[0], queueStorageDock2.items[1],  queueStorageDock2.items[2], queueStorageDock2.items[3]],
-        storageDock3: [queueStorageDock3.items[0], queueStorageDock3.items[1],  queueStorageDock3.items[2], queueStorageDock3.items[3]],
-        storageDock4: [queueStorageDock4.items[0], queueStorageDock4.items[1],  queueStorageDock4.items[2], queueStorageDock4.items[3]],
+    let saveDataObject = {};
+    saveDataObject.storageDock1 = [];
+    saveDataObject.storageDock2 = [];
+    saveDataObject.storageDock3 = [];
+    saveDataObject.storageDock4 = [];
+    saveDataObject.receiveBuffer = [];
+    saveDataObject.dispatchBuffer = [];
 
-        dispatchBuffer: [queueDispatchBuffer.items[0], queueDispatchBuffer.items[1],  queueDispatchBuffer.items[2], queueDispatchBuffer.items[3]],
-        dispatchDock: [queueDispatchDock.items[0], queueDispatchDock.items[1],  queueDispatchDock.items[2], queueDispatchDock.items[3]],
-        receiveBuffer: [queueReceiveBuffer.items[0], queueReceiveBuffer.items[1],  queueReceiveBuffer.items[2], queueReceiveBuffer.items[3]],
-        receiveDock: [queueReceiveDock.items[0], queueReceiveDock.items[1],  queueReceiveDock.items[2], queueReceiveDock.items[3]],
-    };
+    if(queueStorageDock1.items[0] !== undefined)
+        saveDataObject.storageDock1[0] = queueStorageDock1.items[0];
+    if(queueStorageDock1.items[1] !== undefined)
+        saveDataObject.storageDock1[1] = queueStorageDock1.items[1];
+    if(queueStorageDock1.items[2] !== undefined)
+        saveDataObject.storageDock1[2] = queueStorageDock1.items[2];
+    if(queueStorageDock1.items[3] !== undefined)
+        saveDataObject.storageDock1[3] = queueStorageDock1.items[3];
+
+    if(queueStorageDock2.items[0] !== undefined)
+        saveDataObject.storageDock2[0] = queueStorageDock2.items[0];
+    if(queueStorageDock2.items[1] !== undefined)
+        saveDataObject.storageDock2[1] = queueStorageDock2.items[1];
+    if(queueStorageDock2.items[2] !== undefined)
+        saveDataObject.storageDock2[2] = queueStorageDock2.items[2];
+    if(queueStorageDock2.items[3] !== undefined)
+        saveDataObject.storageDock2[3] = queueStorageDock2.items[3];
+
+    if(queueStorageDock3.items[0] !== undefined)
+        saveDataObject.storageDock3[0] = queueStorageDock3.items[0];
+    if(queueStorageDock3.items[1] !== undefined)
+        saveDataObject.storageDock3[1] = queueStorageDock3.items[1];
+    if(queueStorageDock3.items[2] !== undefined)
+        saveDataObject.storageDock3[2] = queueStorageDock3.items[2];
+    if(queueStorageDock3.items[3] !== undefined)
+        saveDataObject.storageDock3[3] = queueStorageDock3.items[3];
+
+    if(queueStorageDock4.items[0] !== undefined)
+        saveDataObject.storageDock4[0] = queueStorageDock4.items[0];
+    if(queueStorageDock4.items[1] !== undefined)
+        saveDataObject.storageDock4[1] = queueStorageDock4.items[1];
+    if(queueStorageDock4.items[2] !== undefined)
+        saveDataObject.storageDock4[2] = queueStorageDock4.items[2];
+    if(queueStorageDock4.items[3] !== undefined)
+        saveDataObject.storageDock4[3] = queueStorageDock4.items[3];
+
+    if(queueReceiveBuffer.items[0] !== undefined)
+        saveDataObject.receiveBuffer[0] = queueReceiveBuffer.items[0];
+    if(queueReceiveBuffer.items[1] !== undefined)
+        saveDataObject.receiveBuffer[1] = queueReceiveBuffer.items[1];
+    if(queueReceiveBuffer.items[2] !== undefined)
+        saveDataObject.receiveBuffer[2] = queueReceiveBuffer.items[2];
+    if(queueReceiveBuffer.items[3] !== undefined)
+        saveDataObject.receiveBuffer[3] = queueReceiveBuffer.items[3];
+
+    if(queueDispatchBuffer.items[0] !== undefined)
+        saveDataObject.dispatchBuffer[0] = queueDispatchBuffer.items[0];
+    if(queueDispatchBuffer.items[1] !== undefined)
+        saveDataObject.dispatchBuffer[1] = queueDispatchBuffer.items[1];
+    if(queueDispatchBuffer.items[2] !== undefined)
+        saveDataObject.dispatchBuffer[2] = queueDispatchBuffer.items[2];
+    if(queueDispatchBuffer.items[3] !== undefined)
+        saveDataObject.dispatchBuffer[3] = queueDispatchBuffer.items[3];
 
     fs.writeFile("warehouse.json", JSON.stringify(saveDataObject), function (erreur) {
         if (erreur) {
@@ -220,8 +289,25 @@ function saveWarehouse() {
 // }
 
 export {
+    location,
     resetWarehouse,
     stateWarehouse,
     saveWarehouse,
     readWarehouse,
+    queueDispatchBuffer,
+    queueDispatchDock,
+    queueReceiveBuffer,
+    queueReceiveDock,
+    queueStorageDock1,
+    queueStorageDock2,
+    queueStorageDock3,
+    queueStorageDock4,
+    QueueA,
+    QueueB,
+    QueueC,
+    QueueD,
+    QueueE,
+    QueueF,
+    QueueG,
+    QueueH
 };

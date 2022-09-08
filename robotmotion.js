@@ -8,50 +8,39 @@ const config = require("./config.json");
 
 const jetmaxUbuntuServerIpAddress = config.roboticArmIpAddress;
 
-//QUEUES
-import {
-    QueueA,
-    QueueB,
-    QueueC,
-    QueueD,
-    QueueE,
-    QueueF,
-    QueueG,
-    QueueH,
-    // QueueRobot,
-} from "./queuelifo.js";
-
-const queueStorageDock1 = new QueueA();
-const queueStorageDock2 = new QueueB();
-const queueReceiveBuffer = new QueueC();
-const queueReceiveDock = new QueueD();
-const queueStorageDock4 = new QueueE();
-const queueStorageDock3 = new QueueF();
-const queueDispatchBuffer = new QueueG();
-const queueDispatchDock = new QueueH();
-// const queueRobot = new QueueRobot();
-
 //Warehouse
-import {saveWarehouse, stateWarehouse} from "./warehouse.js";
+import {location, saveWarehouse, stateWarehouse} from "./warehouse.js";
 
 // MOTION FUNCTIONS
 
 //GO Reset
 async function goReset(duration) {
 
+    // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
+    let setTimeoutTime = 0;
+    if (location === "reset")
+        setTimeoutTime = 100;
+    else if (location === "receiveDock" || location === "receiveBuffer" || location === "dispatchDock" || location === "dispatchBuffer")
+        setTimeoutTime = 300;
+    else if (location === "D2" || location === "D3")
+        setTimeoutTime = 500;
+    else
+        setTimeoutTime = 1000;
+
     try {
         let X = config.resetLocation.x;
         let Y = config.resetLocation.y;
         let Z = config.resetLocation.z;
         await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
-            params: {msg: {x: X, y: Y, z: Z, duration : duration}},
+            params: {msg: {x: X, y: Y, z: Z, duration: duration}},
         });
         await saveWarehouse();
         await stateWarehouse();
         return new Promise((resolve) => {
             setTimeout(() => {
+                location = "reset";
                 resolve("resolved");
-            }, 1000);
+            }, setTimeoutTime);
         });
     } catch (error) {
         console.log("goReset() error");
@@ -65,6 +54,19 @@ async function goReset(duration) {
 //GO A
 async function goStorageD1(duration) {
 
+    // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
+    let setTimeoutTime = 0;
+    if (location === "D2")
+        setTimeoutTime = 300;
+    else if (location === "receiveBuffer")
+        setTimeoutTime = 500;
+    else if (location === "D3")
+        setTimeoutTime = 1800;
+    else if (location === "D4")
+        setTimeoutTime = 2000;
+    else
+        setTimeoutTime = 2000;
+
     try {
         let X = config.storageD1Location.x;
         let Y = config.storageD1Location.y;
@@ -77,8 +79,9 @@ async function goStorageD1(duration) {
         await stateWarehouse();
         return new Promise((resolve) => {
             setTimeout(() => {
+                location = "D1";
                 resolve("resolved");
-            }, 2000);
+            }, setTimeoutTime);
         });
     } catch (error) {
         console.log("goStorageD1() error");
@@ -92,6 +95,19 @@ async function goStorageD1(duration) {
 //GO B
 async function goStorageD2(duration) {
 
+    // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
+    let setTimeoutTime = 0;
+    if (location === "D1")
+        setTimeoutTime = 300;
+    else if (location === "receiveBuffer")
+        setTimeoutTime = 300;
+    else if (location === "D3")
+        setTimeoutTime = 1800;
+    else if (location === "D4")
+        setTimeoutTime = 2000;
+    else
+        setTimeoutTime = 2000;
+
     try {
         let X = config.storageD2Location.x;
         let Y = config.storageD2Location.y;
@@ -104,13 +120,14 @@ async function goStorageD2(duration) {
         await stateWarehouse();
         return new Promise((resolve) => {
             setTimeout(() => {
+                location = "D2";
                 resolve("resolved");
-            }, 2000);
+            }, setTimeoutTime);
         });
     } catch (error) {
         console.log("goStorageD2() error");
         console.log(error);
-        return new Promise((resolve,reject) => {
+        return new Promise((resolve, reject) => {
             reject(error);
         });
     }
@@ -118,6 +135,19 @@ async function goStorageD2(duration) {
 
 //GO F
 async function goStorageD3(duration) {
+
+    // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
+    let setTimeoutTime = 0;
+    if (location === "D4")
+        setTimeoutTime = 300;
+    else if (location === "dispatchBuffer")
+        setTimeoutTime = 300;
+    else if (location === "D2")
+        setTimeoutTime = 1800;
+    else if (location === "D1")
+        setTimeoutTime = 2000;
+    else
+        setTimeoutTime = 2000;
 
     try {
         let X = config.storageD3Location.x;
@@ -131,22 +161,34 @@ async function goStorageD3(duration) {
         await stateWarehouse();
         return new Promise((resolve) => {
             setTimeout(() => {
+                location = "D3";
                 resolve("resolved");
-            }, 2000);
+            }, setTimeoutTime);
         });
     } catch (error) {
         console.log("goStorageD3() error");
         console.log(error);
         return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                reject(error);
-            }, 1000);
+            reject(error);
         });
     }
 }
 
 //GO E
 async function goStorageD4(duration) {
+
+    // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
+    let setTimeoutTime = 0;
+    if (location === "D3")
+        setTimeoutTime = 300;
+    else if (location === "dispatchBuffer")
+        setTimeoutTime = 500;
+    else if (location === "D2")
+        setTimeoutTime = 1800;
+    else if (location === "D1")
+        setTimeoutTime = 2000;
+    else
+        setTimeoutTime = 2000;
 
     try {
         let X = config.storageD4Location.x;
@@ -160,22 +202,29 @@ async function goStorageD4(duration) {
         await stateWarehouse();
         return new Promise((resolve) => {
             setTimeout(() => {
+                location = "D4";
                 resolve("resolved");
-            }, 2000);
+            }, setTimeoutTime);
         });
     } catch (error) {
         console.log("goStorageD4() error");
         console.log(error);
         return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                reject(error);
-            }, 1000);
+            reject(error);
+
         });
     }
 }
 
 //GO C
 async function goReceiveBuffer(duration) {
+
+    // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
+    let setTimeoutTime = 0;
+    if (location === "receiveDock")
+        setTimeoutTime = 500;
+    else
+        setTimeoutTime = 1000;
 
     try {
         let X = config.receiveBufferLocation.x;
@@ -189,23 +238,35 @@ async function goReceiveBuffer(duration) {
         await stateWarehouse();
         return new Promise((resolve) => {
             setTimeout(() => {
+                location = "receiveBuffer";
                 resolve("resolved");
-            }, 2000);
+            }, setTimeoutTime);
         });
 
     } catch (error) {
         console.log("goReceiveBuffer() error");
         console.log(error);
         return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                reject(error);
-            }, 1000);
+            reject(error);
         });
     }
 }
 
 //GO G
 async function goDispatchBuffer(duration) {
+
+    // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
+    let setTimeoutTime = 0;
+    if (location === "D3")
+        setTimeoutTime = 300;
+    else if (location === "D4")
+        setTimeoutTime = 500;
+    else if (location === "D2")
+        setTimeoutTime = 1500;
+    else if (location === "D1")
+        setTimeoutTime = 1800;
+    else
+        setTimeoutTime = 1500;
 
     try {
         let X = config.dispatchBufferLocation.x; //TODO: check
@@ -219,22 +280,27 @@ async function goDispatchBuffer(duration) {
         await stateWarehouse();
         return new Promise((resolve) => {
             setTimeout(() => {
+                location = "dispatchBuffer";
                 resolve("resolved");
-            }, 2000);
+            }, setTimeoutTime);
         });
     } catch (error) {
         console.log("goDispatchBuffer() error");
         console.log(error);
         return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                reject(error);
-            }, 1000);
+            reject(error);
         });
     }
 }
 
 //GO D
 async function goReceiveDock(duration) {
+
+    let setTimeoutTime = 0;
+    if (location === "reset")
+        setTimeoutTime = 300;
+    else
+        setTimeoutTime = 1000;
 
     try {
         let X = config.receiveDockLocation.x; //TODO: check
@@ -248,22 +314,36 @@ async function goReceiveDock(duration) {
         await stateWarehouse();
         return new Promise((resolve) => {
             setTimeout(() => {
+                location = "receiveDock";
                 resolve("resolved");
-            }, 2000);
+            }, setTimeoutTime);
         });
     } catch (error) {
         console.log("goReceiveDock() error");
         console.log(error);
         return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                reject(error);
-            }, 1000);
+            reject(error);
         });
     }
 }
 
 //GO H
 async function goDispatchDock(duration) {
+
+    // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
+    let setTimeoutTime = 0;
+    if (location === "D3")
+        setTimeoutTime = 800;
+    else if (location === "D4")
+        setTimeoutTime = 1000;
+    else if (location === "D2")
+        setTimeoutTime = 8000;
+    else if (location === "D1")
+        setTimeoutTime = 1000;
+    else if (location === "dispatchBuffer")
+        setTimeoutTime = 500;
+    else
+        setTimeoutTime = 1000;
 
     try {
         let X = config.dispatchDockLocation.x; //TODO
@@ -277,16 +357,17 @@ async function goDispatchDock(duration) {
         // await stateWarehouse();
         return new Promise((resolve) => {
             setTimeout(() => {
+                location = "dispatchDock";
                 resolve("resolved");
-            }, 2000);
+            }, setTimeoutTime);
         });
     } catch (error) {
         console.log("goDispatchDock() error");
         console.log(error);
         return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                reject(error);
-            }, 1000);
+
+            reject(error);
+
         });
     }
 }
@@ -302,15 +383,15 @@ async function suctionON(packageIndex) {
         await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
             params: {msg: {data: true}},
         });
-	console.log("doing goRelease()");
-	await goRelease();
+        console.log("doing goRelease()");
+        await goRelease();
         console.log("doing goUp()");
         await goUp(packageIndex);
         await saveWarehouse();
         await stateWarehouse();
         return new Promise((resolve) => {
             //setTimeout(() => {
-                resolve("resolved");
+            resolve("resolved");
             //}, 1000);
         });
     } catch (error) {
@@ -318,7 +399,7 @@ async function suctionON(packageIndex) {
         console.log(error);
         return new Promise((resolve, reject) => {
             //setTimeout(() => {
-                reject(error);
+            reject(error);
             //}, 1000);
         });
     }
@@ -336,13 +417,13 @@ async function suctionOFF(packageIndex) {
         console.log("doing goRelease()");
         await goRelease();
         console.log("doing goUp()");
-	await goUp(packageIndex);
+        await goUp(packageIndex);
         await saveWarehouse();
         await stateWarehouse();
 
         return new Promise((resolve) => {
             //setTimeout(() => {
-                resolve("resolved");
+            resolve("resolved");
             //}, 1000);
         });
 
@@ -351,7 +432,7 @@ async function suctionOFF(packageIndex) {
         console.log(error);
         return new Promise((resolve, reject) => {
             //setTimeout(() => {
-                reject(error);
+            reject(error);
             //}, 1000);
         });
     }
@@ -375,14 +456,14 @@ async function goDown(packageIndex) {
         }
 
         return new Promise((resolve) => {
-                resolve("resolved");
+            resolve("resolved");
         });
     } catch (error) {
         console.log("goDown() error");
         console.log(error);
         return new Promise((resolve, reject) => {
-                reject(error);
- 
+            reject(error);
+
         });
     }
 }
@@ -437,7 +518,7 @@ async function goUp(packageIndex) {
 
         return new Promise((resolve) => {
 
-                resolve("resolved");
+            resolve("resolved");
 
         });
     } catch (error) {
@@ -445,7 +526,7 @@ async function goUp(packageIndex) {
         console.log(error);
         return new Promise((resolve, reject) => {
 
-                reject(error);
+            reject(error);
 
         });
     }
@@ -538,21 +619,5 @@ export {
     goReceiveBuffer,
     goReceiveDock,
     suctionOFF,
-    suctionON,
-    queueDispatchBuffer,
-    queueDispatchDock,
-    queueReceiveBuffer,
-    queueReceiveDock,
-    queueStorageDock1,
-    queueStorageDock2,
-    queueStorageDock3,
-    queueStorageDock4,
-    QueueA,
-    QueueB,
-    QueueC,
-    QueueD,
-    QueueE,
-    QueueF,
-    QueueG,
-    QueueH,
+    suctionON
 };

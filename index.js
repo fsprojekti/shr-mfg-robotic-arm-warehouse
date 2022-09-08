@@ -16,6 +16,14 @@ require('console-stamp')(console, '[HH:MM:ss.l]');
 const config = require("./config.json");
 
 import {
+    queueStorageDock1,
+    queueStorageDock2,
+    queueStorageDock3,
+    queueStorageDock4,
+    queueReceiveBuffer,
+    queueDispatchBuffer
+} from "./warehouse.js";
+import {
     goStorageD1,
     goStorageD2,
     goStorageD3,
@@ -27,16 +35,10 @@ import {
     goDispatchBuffer,
     suctionON,
     suctionOFF,
-    queueStorageDock1,
-    queueStorageDock2,
-    queueStorageDock3,
-    queueStorageDock4,
-    queueReceiveBuffer,
-    queueDispatchBuffer
 } from "./robotmotion.js";
 
 //Warehouse
-import {readWarehouse, saveWarehouse, stateWarehouse} from "./warehouse.js";
+import {location, readWarehouse, saveWarehouse, stateWarehouse} from "./warehouse.js";
 // import {Promise} from "es6-promise";
 
 // global variables
