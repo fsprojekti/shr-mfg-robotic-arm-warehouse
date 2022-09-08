@@ -37,14 +37,14 @@ import {saveWarehouse, stateWarehouse} from "./warehouse.js";
 // MOTION FUNCTIONS
 
 //GO Reset
-async function goReset() {
+async function goReset(duration) {
 
     try {
         let X = config.resetLocation.x;
         let Y = config.resetLocation.y;
         let Z = config.resetLocation.z;
         await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
-            params: {msg: {x: X, y: Y, z: Z}},
+            params: {msg: {x: X, y: Y, z: Z, duration : duration}},
         });
         await saveWarehouse();
         await stateWarehouse();
@@ -78,7 +78,7 @@ async function goStorageD1(duration) {
         return new Promise((resolve) => {
             setTimeout(() => {
                 resolve("resolved");
-            }, 1000);
+            }, 2000);
         });
     } catch (error) {
         console.log("goStorageD1() error");
@@ -105,13 +105,13 @@ async function goStorageD2(duration) {
         return new Promise((resolve) => {
             setTimeout(() => {
                 resolve("resolved");
-            }, 1000);
+            }, 2000);
         });
     } catch (error) {
         console.log("goStorageD2() error");
         console.log(error);
-        return new Promise((resolve) => {
-            resolve(error);
+        return new Promise((resolve,reject) => {
+            reject(error);
         });
     }
 }
@@ -132,7 +132,7 @@ async function goStorageD3(duration) {
         return new Promise((resolve) => {
             setTimeout(() => {
                 resolve("resolved");
-            }, 1000);
+            }, 2000);
         });
     } catch (error) {
         console.log("goStorageD3() error");
@@ -161,7 +161,7 @@ async function goStorageD4(duration) {
         return new Promise((resolve) => {
             setTimeout(() => {
                 resolve("resolved");
-            }, 1000);
+            }, 2000);
         });
     } catch (error) {
         console.log("goStorageD4() error");
@@ -190,7 +190,7 @@ async function goReceiveBuffer(duration) {
         return new Promise((resolve) => {
             setTimeout(() => {
                 resolve("resolved");
-            }, 1000);
+            }, 2000);
         });
 
     } catch (error) {
@@ -220,7 +220,7 @@ async function goDispatchBuffer(duration) {
         return new Promise((resolve) => {
             setTimeout(() => {
                 resolve("resolved");
-            }, 1000);
+            }, 2000);
         });
     } catch (error) {
         console.log("goDispatchBuffer() error");
@@ -249,7 +249,7 @@ async function goReceiveDock(duration) {
         return new Promise((resolve) => {
             setTimeout(() => {
                 resolve("resolved");
-            }, 1000);
+            }, 2000);
         });
     } catch (error) {
         console.log("goReceiveDock() error");
@@ -278,7 +278,7 @@ async function goDispatchDock(duration) {
         return new Promise((resolve) => {
             setTimeout(() => {
                 resolve("resolved");
-            }, 1000);
+            }, 2000);
         });
     } catch (error) {
         console.log("goDispatchDock() error");
@@ -302,21 +302,24 @@ async function suctionON(packageIndex) {
         await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
             params: {msg: {data: true}},
         });
+	console.log("doing goRelease()");
+	await goRelease();
+        console.log("doing goUp()");
         await goUp(packageIndex);
         await saveWarehouse();
         await stateWarehouse();
         return new Promise((resolve) => {
-            setTimeout(() => {
+            //setTimeout(() => {
                 resolve("resolved");
-            }, 1000);
+            //}, 1000);
         });
     } catch (error) {
         console.log("suctionON() error");
         console.log(error);
         return new Promise((resolve, reject) => {
-            setTimeout(() => {
+            //setTimeout(() => {
                 reject(error);
-            }, 1000);
+            //}, 1000);
         });
     }
 }
@@ -326,29 +329,30 @@ async function suctionOFF(packageIndex) {
 
     try {
         console.log("doing goDown()");
-        // await goDown(packageIndex);
+        await goDown(packageIndex);
         await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
             params: {msg: {data: false}},
         });
         console.log("doing goRelease()");
         await goRelease();
-
+        console.log("doing goUp()");
+	await goUp(packageIndex);
         await saveWarehouse();
         await stateWarehouse();
 
         return new Promise((resolve) => {
-            setTimeout(() => {
+            //setTimeout(() => {
                 resolve("resolved");
-            }, 1000);
+            //}, 1000);
         });
 
     } catch (error) {
         console.log("suctionOFF() error");
         console.log(error);
         return new Promise((resolve, reject) => {
-            setTimeout(() => {
+            //setTimeout(() => {
                 reject(error);
-            }, 1000);
+            //}, 1000);
         });
     }
 }
@@ -371,17 +375,14 @@ async function goDown(packageIndex) {
         }
 
         return new Promise((resolve) => {
-            setTimeout(() => {
                 resolve("resolved");
-            }, 1000);
         });
     } catch (error) {
         console.log("goDown() error");
         console.log(error);
         return new Promise((resolve, reject) => {
-            setTimeout(() => {
                 reject(error);
-            }, 1000);
+ 
         });
     }
 }
@@ -395,7 +396,7 @@ async function moveDown(index) {
 
     // duration of the move is dependent on the end position index
     // this is crucial to prevent fast movements
-    let moveDuration = 0.5 * (5 - index);
+    let moveDuration = config.moveDurationDefault;
 
     try {
         await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/move", {
@@ -435,17 +436,17 @@ async function goUp(packageIndex) {
         }
 
         return new Promise((resolve) => {
-            setTimeout(() => {
+
                 resolve("resolved");
-            }, 1000);
+
         });
     } catch (error) {
         console.log("goUp() error");
         console.log(error);
         return new Promise((resolve, reject) => {
-            setTimeout(() => {
+
                 reject(error);
-            }, 1000);
+
         });
     }
 }
@@ -453,17 +454,17 @@ async function goUp(packageIndex) {
 // MOVE UP
 async function moveUp(index) {
 
-    console.log("doing moveDown()");
+    console.log("doing moveUp()");
     // read the relative move by z axis from a config file
     let z = config.moveUpZ[index - 1];
 
     // duration of the move is dependent on the end position index
     // this is crucial to prevent fast movements
-    let moveDuration = 0.3 * (5 - index);
+    let moveDuration = config.moveDurationDefault;
 
     try {
         await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/move", {
-            params: {msg: {x: 0, y: 0, z: -z, duration: moveDuration}},
+            params: {msg: {x: 0, y: 0, z: z, duration: moveDuration}},
         });
         return new Promise((resolve) => {
             setTimeout(() => {

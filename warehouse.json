@@ -1,10 +1,1 @@
-{
-  "storageDock1": ["a","b"],
-  "storageDock2": [],
-  "storageDock3": ["c"],
-  "storageDock4": [],
-  "dispatchBuffer": [],
-  "dispatchDock": [],
-  "receiveBuffer": [],
-  "receiveDock": []
-}
+{"storageDock1":["a",null,null,null],"storageDock2":[null,null,null,null],"storageDock3":["c",null,null,null],"storageDock4":[0,null,null,null],"dispatchBuffer":[null,null,null,null],"dispatchDock":[null,null,null,null],"receiveBuffer":[null,null,null,null],"receiveDock":["29b4c",null,null,null]}

@@ -132,7 +132,7 @@ function calculateMoveToDuration(startLocation, endLocation) {
     // if(endLocation === "receiveBuffer"): default duration
     // if(startLocation = "receiveBuffer" && endLocation === "D2"): default duration
     if (startLocation === "receiveBuffer" && endLocation === "D1")
-        duration = 2 * config.moveToDurationDefault;
+        duration = config.moveToDurationDefault;
 
         // if (startLocation === "D1" && endLocation = "D2"   || startLocation === "D2" && endLocation = "D1"): default duration
 
@@ -140,27 +140,27 @@ function calculateMoveToDuration(startLocation, endLocation) {
         // if(endLocation === "dispatchDock"): default duration
     // if startLocation = "D3" && endLocation === "dispatchBuffer": default duration
     else if (startLocation === "D4" && endLocation === "dispatchBuffer")
-        duration = 2 * config.moveToDurationDefault;
+        duration = config.moveToDurationDefault;
 
         // if (startLocation === "D3" && endLocation = "D4"   || startLocation === "D4" && endLocation = "D3"): default duration
 
     // moves from one side of the robot arm to the other side need longer time
     else if ((startLocation === "D1" || startLocation === "D2") && (endLocation === "D3" || endLocation === "D4"))
-        duration = 5 * config.moveToDurationDefault;
+        duration = config.moveToDurationDefault/2;
     else if ((startLocation === "D3" || startLocation === "D4") && (endLocation === "D1" || endLocation === "D2"))
-        duration = 5 * config.moveToDurationDefault;
+        duration = 5 * config.moveToDurationDefault/2;
 
     // moves from the reset location
     else if (startLocation === "reset") {
         if (endLocation === "D2" || endLocation === "D3")
-            duration = 2 * config.moveToDurationDefault;
+            duration = config.moveToDurationDefault;
         else if (endLocation === "D1" || endLocation === "D4")
-            duration = 3 * config.moveToDurationDefault;
+            duration = config.moveToDurationDefault;
     } else if (endLocation === "reset") {
         if (startLocation === "D2" || startLocation === "D3")
-            duration = 2 * config.moveToDurationDefault;
+            duration = config.moveToDurationDefault;
         else if (startLocation === "D1" || startLocation === "D4")
-            duration = 3 * config.moveToDurationDefault;
+            duration = config.moveToDurationDefault;
     }
 
     return duration;
@@ -180,7 +180,7 @@ async function load(packageId, packageIndex) {
         // move the package to the receive buffer queue
         queueReceiveBuffer.enqueue(packageId);
 
-        await goReset();
+        await goReset("","reset");
 
         return new Promise((resolve) => {
             resolve("done");
@@ -229,7 +229,7 @@ async function unload(startLocation, packageIndex) {
         await goDispatchDock(calculateMoveToDuration(startLocation, "dispatchDock"));
         // "packageIndex" of suctionOFF() is 0, because the end location is dispatch dock = robot car
         await suctionOFF(0);
-        await goReset();
+        await goReset(calculateMoveToDuration("dispatchDock", "reset"));
 
         return new Promise((resolve) => {
             resolve("done");
@@ -262,8 +262,8 @@ async function move(startLocation, packageIndex) {
     // }
     let newLocation = await findNewLocation(startLocation);
 
-    let durationMove = calculateMoveToDuration(startLocation, newLocation);
-
+    let durationMove1 = calculateMoveToDuration("reset", startLocation);
+ 
     console.log("selected new location: " + newLocation);
 
     try {
@@ -273,17 +273,17 @@ async function move(startLocation, packageIndex) {
         // move to the start location
         if (startLocation === "D1") {
             console.log("doing goStorageD1()");
-            await goStorageD1(durationMove);
+            await goStorageD1(durationMove1);
         } else if (startLocation === "D2") {
-            await goStorageD2(durationMove);
+            await goStorageD2(durationMove1);
         } else if (startLocation === "D3") {
-            await goStorageD3(durationMove);
+            await goStorageD3(durationMove1);
         } else if (startLocation === "D4") {
-            await goStorageD4(durationMove);
+            await goStorageD4(durationMove1);
         } else if (startLocation === "receiveBuffer") {
-            await goReceiveBuffer(durationMove);
+            await goReceiveBuffer(durationMove1);
         } else if (startLocation === "dispatchBuffer") {
-            await goDispatchBuffer(durationMove);
+            await goDispatchBuffer(durationMove1);
         }
 
         console.log("doing suctionON()");
@@ -304,41 +304,43 @@ async function move(startLocation, packageIndex) {
             queueDispatchBuffer.dequeue();
 
 
+   	let durationMove2 = calculateMoveToDuration(startLocation, newLocation);
+
         // move the robot arm to the new location
         if (newLocation === "D1") {
             console.log("doing goStorageD1()");
-            await goStorageD1();
+            await goStorageD1(durationMove2);
             console.log("doing suctionOFF()");
             await suctionOFF(queueStorageDock1.topIndex + 1);
         } else if (newLocation === "D2") {
             console.log("doing goStorageD2()");
-            await goStorageD2();
+            await goStorageD2(durationMove2);
             console.log("doing suctionOFF()");
             await suctionOFF(queueStorageDock2.topIndex + 1);
         } else if (newLocation === "D3") {
             console.log("doing goStorageD3()");
-            await goStorageD3();
+            await goStorageD3(durationMove2);
             console.log("doing suctionOFF()");
             await suctionOFF(queueStorageDock3.topIndex + 1);
         } else if (newLocation === "D4") {
             console.log("doing goStorageD4()");
-            await goStorageD4();
+            await goStorageD4(durationMove2);
             console.log("doing suctionOFF()");
             await suctionOFF(queueStorageDock4.topIndex + 1);
         } else if (newLocation === "receiveBuffer") {
             console.log("doing receiveBuffer()");
-            await goReceiveBuffer()
+            await goReceiveBuffer(durationMove2)
             console.log("doing suctionOFF()");
             await suctionOFF(queueReceiveBuffer.topIndex + 1);
         } else if (newLocation === "dispatchBuffer") {
             console.log("doing dispatchBuffer()");
-            await goDispatchBuffer();
+            await goDispatchBuffer(durationMove2);
             console.log("doing suctionOFF()");
             await suctionOFF(queueDispatchBuffer.topIndex + 1);
         }
 
-        console.log("doing suctionOFF()");
-        await suctionOFF(packageIndex);
+ //       console.log("doing suctionOFF()");
+ //       await suctionOFF(packageIndex);
 
 
         // move the package to the new location queue
@@ -356,7 +358,7 @@ async function move(startLocation, packageIndex) {
             queueDispatchBuffer.enqueue(packageId);
 
         console.log("doing goReset()");
-        await goReset();
+        await goReset(calculateMoveToDuration(newLocation, "reset"));
 
         return new Promise((resolve) => {
             resolve("done");

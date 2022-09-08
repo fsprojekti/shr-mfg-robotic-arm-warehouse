@@ -14,7 +14,7 @@
   "moveDownZ": [-133,-126,-116,-106],
   "moveUpZ": [133,126,116,106],
   "goGrabZ": -20,
-  "goReleaseZ": 50,
+  "goReleaseZ": 20,
   "moveDurationDefault": 0.5,
-  "moveToDurationDefault": 500
+  "moveToDurationDefault": 300
 }
