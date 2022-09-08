@@ -119,21 +119,64 @@ app.listen(config.nodejsPort, function () {
     reqObject.packageDock = "D1";
     reqObject.dockPosition = 4;
     reqObject.mode = "test";
+    tasksQueue.push(reqObject);
 
     console.log('Warehouse Node.js server listening on port ' + config.nodejsPort + '!');
 });
 
-// load a package, from a receive dock to the receive buffer
-async function load(packageId) {
+function calculateMoveToDuration(startLocation, endLocation) {
 
-    // let res = [];
+    let duration = config.moveToDurationDefault;
+
+    // if(startLocation = "receiveDock"): default duration
+    // if(endLocation === "receiveBuffer"): default duration
+    // if(startLocation = "receiveBuffer" && endLocation === "D2"): default duration
+    if (startLocation === "receiveBuffer" && endLocation === "D1")
+        duration = 2 * config.moveToDurationDefault;
+
+        // if (startLocation === "D1" && endLocation = "D2"   || startLocation === "D2" && endLocation = "D1"): default duration
+
+        // if(startLocation === "dispatchBuffer"): default duration
+        // if(endLocation === "dispatchDock"): default duration
+    // if startLocation = "D3" && endLocation === "dispatchBuffer": default duration
+    else if (startLocation === "D4" && endLocation === "dispatchBuffer")
+        duration = 2 * config.moveToDurationDefault;
+
+        // if (startLocation === "D3" && endLocation = "D4"   || startLocation === "D4" && endLocation = "D3"): default duration
+
+    // moves from one side of the robot arm to the other side need longer time
+    else if ((startLocation === "D1" || startLocation === "D2") && (endLocation === "D3" || endLocation === "D4"))
+        duration = 5 * config.moveToDurationDefault;
+    else if ((startLocation === "D3" || startLocation === "D4") && (endLocation === "D1" || endLocation === "D2"))
+        duration = 5 * config.moveToDurationDefault;
+
+    // moves from the reset location
+    else if (startLocation === "reset") {
+        if (endLocation === "D2" || endLocation === "D3")
+            duration = 2 * config.moveToDurationDefault;
+        else if (endLocation === "D1" || endLocation === "D4")
+            duration = 3 * config.moveToDurationDefault;
+    } else if (endLocation === "reset") {
+        if (startLocation === "D2" || startLocation === "D3")
+            duration = 2 * config.moveToDurationDefault;
+        else if (startLocation === "D1" || startLocation === "D4")
+            duration = 3 * config.moveToDurationDefault;
+    }
+
+    return duration;
+}
+
+// load a package, from a receive dock to the receive buffer
+async function load(packageId, packageIndex) {
 
     try {
-        await goReset();
-        await goReceiveDock();
-        await suctionON();
-        await goReceiveBuffer();
-        await suctionOFF();
+        await goReset(calculateMoveToDuration("", "reset"));
+        await goReceiveDock(calculateMoveToDuration("reset", "receiveDock"));
+        // "packageIndex" for suctionOn() function is 0, because the first move is to the receive dock = robot car
+        await suctionON(0);
+        // packageIndex is the topIndex+1 of the receiveBuffer
+        await goReceiveBuffer(queueReceiveBuffer.topIndex + 1, calculateMoveToDuration("receiveDock", "receiveBuffer"));
+        await suctionOFF(packageIndex);
         // move the package to the receive buffer queue
         queueReceiveBuffer.enqueue(packageId);
 
@@ -151,40 +194,41 @@ async function load(packageId) {
 }
 
 // unload a package - from any of the storage docks, receive buffer or dispatch buffer to the dispatch dock
-async function unload(location) {
+async function unload(startLocation, packageIndex) {
 
     try {
-        await goReset();
-        if (location === "D1")
-            await goStorageD1();
-        else if (location === "D2")
-            await goStorageD2();
-        else if (location === "D3")
-            await goStorageD3();
-        else if (location === "D4")
-            await goStorageD4();
-        else if (location === "receiveBuffer")
-            await goReceiveBuffer();
-        else if (location === "dispatchBuffer")
-            await goDispatchBuffer();
+        await goReset(calculateMoveToDuration("", "reset"));
+        if (startLocation === "D1")
+            await goStorageD1(calculateMoveToDuration("reset", startLocation));
+        else if (startLocation === "D2")
+            await goStorageD2(calculateMoveToDuration("reset", startLocation));
+        else if (startLocation === "D3")
+            await goStorageD3(calculateMoveToDuration("reset", startLocation));
+        else if (startLocation === "D4")
+            await goStorageD4(calculateMoveToDuration("reset", startLocation));
+        else if (startLocation === "receiveBuffer")
+            await goReceiveBuffer(calculateMoveToDuration("reset", startLocation));
+        else if (startLocation === "dispatchBuffer")
+            await goDispatchBuffer(calculateMoveToDuration("reset", startLocation));
 
-        await suctionON();
+        await suctionON(packageIndex);
         // remove the package from the start location
-        if (location === "D1")
+        if (startLocation === "D1")
             queueStorageDock1.dequeue();
-        else if (location === "D2")
+        else if (startLocation === "D2")
             queueStorageDock2.dequeue();
-        else if (location === "D3")
+        else if (startLocation === "D3")
             queueStorageDock3.dequeue();
-        else if (location === "D4")
+        else if (startLocation === "D4")
             queueStorageDock4.dequeue();
-        else if (location === "receiveBuffer")
+        else if (startLocation === "receiveBuffer")
             queueReceiveBuffer.dequeue();
-        else if (location === "dispatchBuffer")
+        else if (startLocation === "dispatchBuffer")
             queueDispatchBuffer.dequeue();
 
-        await goDispatchDock();
-        await suctionOFF();
+        await goDispatchDock(calculateMoveToDuration(startLocation, "dispatchDock"));
+        // "packageIndex" of suctionOFF() is 0, because the end location is dispatch dock = robot car
+        await suctionOFF(0);
         await goReset();
 
         return new Promise((resolve) => {
@@ -200,43 +244,51 @@ async function unload(location) {
 
 // move a package from one dock to another
 // the starting location can be any of the 4 storage docks or of the 2 buffer docks
-async function move(startLocation, itemIndex) {
+async function move(startLocation, packageIndex) {
 
     let packageId = 0;
-    if (startLocation === "D1") {
-        packageId = queueStorageDock1[itemIndex]
-    } else if (startLocation === "D2") {
-        packageId = queueStorageDock2[itemIndex]
-    } else if (startLocation === "D3") {
-        packageId = queueStorageDock3[itemIndex]
-    } else if (startLocation === "D4") {
-        packageId = queueStorageDock4[itemIndex]
-    } else if (startLocation === "receiveBuffer") {
-        packageId = queueReceiveBuffer[itemIndex]
-    } else if (startLocation === "dispatchBuffer") {
-        packageId = queueDispatchBuffer[itemIndex]
-    }
+    //  if (startLocation === "D1") {
+    //      packageId = queueStorageDock1[itemIndex]
+    //  } else if (startLocation === "D2") {
+    //      packageId = queueStorageDock2[itemIndex]
+    //  } else if (startLocation === "D3") {
+    //     packageId = queueStorageDock3[itemIndex]
+    //  } else if (startLocation === "D4") {
+    //      packageId = queueStorageDock4[itemIndex]
+    // } else if (startLocation === "receiveBuffer") {
+    //     packageId = queueReceiveBuffer[itemIndex]
+    // } else if (startLocation === "dispatchBuffer") {
+    //     packageId = queueDispatchBuffer[itemIndex]
+    // }
     let newLocation = await findNewLocation(startLocation);
+
+    let durationMove = calculateMoveToDuration(startLocation, newLocation);
+
+    console.log("selected new location: " + newLocation);
 
     try {
 
-        await goReset();
+        console.log("doing goReset()");
+        await goReset(calculateMoveToDuration("", "reset"));
         // move to the start location
         if (startLocation === "D1") {
-            await goStorageD1();
+            console.log("doing goStorageD1()");
+            await goStorageD1(durationMove);
         } else if (startLocation === "D2") {
-            await goStorageD2();
+            await goStorageD2(durationMove);
         } else if (startLocation === "D3") {
-            await goStorageD3();
+            await goStorageD3(durationMove);
         } else if (startLocation === "D4") {
-            await goStorageD4();
+            await goStorageD4(durationMove);
         } else if (startLocation === "receiveBuffer") {
-            await goReceiveBuffer();
+            await goReceiveBuffer(durationMove);
         } else if (startLocation === "dispatchBuffer") {
-            await goDispatchBuffer();
+            await goDispatchBuffer(durationMove);
         }
 
-        await suctionON();
+        console.log("doing suctionON()");
+        // packageIndex is the index of the package in the start location queue
+        await suctionON(packageIndex);
         // remove the package from the start location queue
         if (startLocation === "D1")
             queueStorageDock1.dequeue();
@@ -251,22 +303,43 @@ async function move(startLocation, itemIndex) {
         else if (startLocation === "dispatchBuffer")
             queueDispatchBuffer.dequeue();
 
-        await suctionOFF();
 
         // move the robot arm to the new location
         if (newLocation === "D1") {
+            console.log("doing goStorageD1()");
             await goStorageD1();
+            console.log("doing suctionOFF()");
+            await suctionOFF(queueStorageDock1.topIndex + 1);
         } else if (newLocation === "D2") {
+            console.log("doing goStorageD2()");
             await goStorageD2();
+            console.log("doing suctionOFF()");
+            await suctionOFF(queueStorageDock2.topIndex + 1);
         } else if (newLocation === "D3") {
+            console.log("doing goStorageD3()");
             await goStorageD3();
+            console.log("doing suctionOFF()");
+            await suctionOFF(queueStorageDock3.topIndex + 1);
         } else if (newLocation === "D4") {
+            console.log("doing goStorageD4()");
             await goStorageD4();
+            console.log("doing suctionOFF()");
+            await suctionOFF(queueStorageDock4.topIndex + 1);
         } else if (newLocation === "receiveBuffer") {
-            await goReceiveBuffer();
+            console.log("doing receiveBuffer()");
+            await goReceiveBuffer()
+            console.log("doing suctionOFF()");
+            await suctionOFF(queueReceiveBuffer.topIndex + 1);
         } else if (newLocation === "dispatchBuffer") {
+            console.log("doing dispatchBuffer()");
             await goDispatchBuffer();
+            console.log("doing suctionOFF()");
+            await suctionOFF(queueDispatchBuffer.topIndex + 1);
         }
+
+        console.log("doing suctionOFF()");
+        await suctionOFF(packageIndex);
+
 
         // move the package to the new location queue
         if (newLocation === "D1")
@@ -282,6 +355,7 @@ async function move(startLocation, itemIndex) {
         else if (newLocation === "dispatchBuffer")
             queueDispatchBuffer.enqueue(packageId);
 
+        console.log("doing goReset()");
         await goReset();
 
         return new Promise((resolve) => {
@@ -295,7 +369,7 @@ async function move(startLocation, itemIndex) {
     }
 }
 
-// find a best location for a package move
+// find the best location for a package move
 async function findNewLocation(currentLocation) {
 
     let newLocation;
@@ -322,15 +396,18 @@ async function findNewLocation(currentLocation) {
 // periodically check the tasks queue and order a transfer (move)
 setInterval(async function () {
 
+    console.log("tasks queue at the start of setInterval: " + JSON.stringify(tasksQueue));
+
     // check if there is any task in the queue
     if (tasksQueue.length > 0) {
         console.log("tasks queue not empty")
         // if the robot arm is not busy doing a task, start a new task
         if (!busy) {
             console.log("robot arm not busy, started processing a task...")
+            busy = true;
             // take the first task from the queue (FIFO)
             let task = tasksQueue[0];
-            console.log("processing task: " + task);
+            console.log("processing task: " + JSON.stringify(task));
 
             // if the task is to load a package from a car to the storage
             if (task.mode === "load") {
@@ -342,7 +419,7 @@ setInterval(async function () {
                 // receive buffer is not full, proceed with the load task
                 else {
                     console.log("calling the load() task...");
-                    let loadPromise = load(task.packageId);
+                    let loadPromise = load(task.packageId, 0);
                     loadPromise.then(
                         (data) => {
                             console.log(data);
@@ -372,6 +449,8 @@ setInterval(async function () {
                 }
             } else if (task.mode === "unload") {
 
+                console.log("task mode is unload");
+
                 let itemIndex;
                 // this array holds all the promises for async functions calls, it is constructed depending on the start
                 // location of the package, and at the end Promise.all is called
@@ -396,7 +475,7 @@ setInterval(async function () {
                         // move 1 package
                         promiseArray.push(move("D1", currentTopPackageIndex));
                     }
-                    promiseArray.push(unload("D1"))
+                    promiseArray.push(unload("D1", queueStorageDock1.topIndex))
 
                     // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
                     promiseArray.push(axios.get(config.controlAppUrl + "/dispatchFinished", {
@@ -420,7 +499,7 @@ setInterval(async function () {
                         // move 1 package
                         promiseArray.push(move("D2", currentTopPackageIndex));
                     }
-                    promiseArray.push(unload("D2"))
+                    promiseArray.push(unload("D2", queueStorageDock2.topIndex))
 
                     // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
                     promiseArray.push(axios.get(config.controlAppUrl + "/dispatchFinished", {
@@ -444,7 +523,7 @@ setInterval(async function () {
                         // move 1 package
                         promiseArray.push(move("D3", currentTopPackageIndex));
                     }
-                    promiseArray.push(unload("D1"))
+                    promiseArray.push(unload("D1", queueStorageDock3.topIndex))
 
                     // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
                     promiseArray.push(axios.get(config.controlAppUrl + "/dispatchFinished", {
@@ -468,7 +547,7 @@ setInterval(async function () {
                         // move 1 package
                         promiseArray.push(move("D4", currentTopPackageIndex));
                     }
-                    promiseArray.push(unload("D4"))
+                    promiseArray.push(unload("D4", queueStorageDock4.topIndex))
 
                     // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
                     promiseArray.push(axios.get(config.controlAppUrl + "/dispatchFinished", {
@@ -492,7 +571,7 @@ setInterval(async function () {
                         // move 1 package
                         promiseArray.push(move("receiveBuffer", currentTopPackageIndex));
                     }
-                    promiseArray.push(unload("receiveBuffer"))
+                    promiseArray.push(unload("receiveBuffer", queueReceiveBuffer.topIndex))
 
                     // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
                     promiseArray.push(axios.get(config.controlAppUrl + "/dispatchFinished", {
@@ -517,7 +596,7 @@ setInterval(async function () {
                         promiseArray.push(move("dispatchBuffer", currentTopPackageIndex));
 
                     }
-                    promiseArray.push(unload("dispatchBuffer"))
+                    promiseArray.push(unload("dispatchBuffer", queueDispatchBuffer.topIndex))
 
                     // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
                     promiseArray.push(axios.get(config.controlAppUrl + "/dispatchFinished", {
@@ -554,12 +633,16 @@ setInterval(async function () {
                 })
             } else if (task.mode === "test") {
 
+                console.log("task mode is test");
+
                 //if(task.mode === "test-storage1") {
                 let promiseMove = move(task.packageDock, task.dockPosition)
                 promiseMove.then(() => {
                     console.log("the move task successfully finished, removing the task from the queue")
                     // remove the task from the queue
                     tasksQueue.shift();
+
+                    console.log("tasks queue after test: " + JSON.stringify(tasksQueue));
 
                 }, (error) => {
                     console.log("error while doing the move task, task remains in the queue");

@@ -12,6 +12,9 @@
   "dispatchBufferLocation": {"x":  125, "y": -110, "z": 215},
   "dispatchDockLocation": {"x":  0, "y": -110, "z": 215},
   "moveDownZ": [-133,-126,-116,-106],
+  "moveUpZ": [133,126,116,106],
   "goGrabZ": -20,
-  "goReleaseZ": 50
+  "goReleaseZ": 50,
+  "moveDurationDefault": 0.5,
+  "moveToDurationDefault": 500
 }
