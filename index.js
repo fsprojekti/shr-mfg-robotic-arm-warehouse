@@ -66,9 +66,11 @@ app.get('/requestsQueue', function (req, res) {
 app.get('/warehouse', function (req, res) {
 
     console.log("received a request to the endpoint /warehouse");
-    warehouse = {"storageDock1": queueStorageDock1, "storageDock2": queueStorageDock2,
+    warehouse = {
+        "storageDock1": queueStorageDock1, "storageDock2": queueStorageDock2,
         "storageDock3": queueStorageDock3, "storageDock4": queueStorageDock4,
-        "receiveBuffer": queueReceiveBuffer, "dispatchBuffer": queueDispatchBuffer,}
+        "receiveBuffer": queueReceiveBuffer, "dispatchBuffer": queueDispatchBuffer,
+    }
     res.send(JSON.stringify(warehouse));
 
 });
@@ -114,7 +116,9 @@ app.listen(config.nodejsPort, function () {
     let reqObject = {}
     reqObject.taskId = 1;
     reqObject.packageId = "abc";
-    reqObject.mode = "load";
+    reqObject.packageDock = "D1";
+    reqObject.dockPosition = 4;
+    reqObject.mode = "test";
 
     console.log('Warehouse Node.js server listening on port ' + config.nodejsPort + '!');
 });
@@ -548,6 +552,20 @@ setInterval(async function () {
                     console.log("error while doing the move task, task remains in the queue");
                     console.log(error);
                 })
+            } else if (task.mode === "test") {
+
+                //if(task.mode === "test-storage1") {
+                let promiseMove = move(task.packageDock, task.dockPosition)
+                promiseMove.then(() => {
+                    console.log("the move task successfully finished, removing the task from the queue")
+                    // remove the task from the queue
+                    tasksQueue.shift();
+
+                }, (error) => {
+                    console.log("error while doing the move task, task remains in the queue");
+                    console.log(error);
+                })
+                // }
             }
         } else {
             console.log("robot arm is busy, task not started");
