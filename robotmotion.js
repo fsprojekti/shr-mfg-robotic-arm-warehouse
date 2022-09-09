@@ -218,6 +218,7 @@ async function goStorageD4(duration) {
 //GO C
 async function goReceiveBuffer(duration) {
 
+
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
     if (warehouse.location === "receiveDock")
@@ -253,6 +254,7 @@ async function goReceiveBuffer(duration) {
 
 //GO G
 async function goDispatchBuffer(duration) {
+
 
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
@@ -295,6 +297,7 @@ async function goDispatchBuffer(duration) {
 //GO D
 async function goReceiveDock(duration) {
 
+
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
     if (warehouse.location === "reset")
@@ -330,6 +333,7 @@ async function goReceiveDock(duration) {
 //GO H
 async function goDispatchDock(duration) {
 
+
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
     if (warehouse.location === "D3")
@@ -354,7 +358,7 @@ async function goDispatchDock(duration) {
             params: {msg: {x: X, y: Y, z: Z, duration: duration}},
         });
         await warehouse.saveWarehouse();
-        // await warehouse.stateWarehouse();
+        await warehouse.stateWarehouse();
         return new Promise((resolve) => {
             setTimeout(() => {
                 warehouse.location = "dispatchDock";
@@ -549,7 +553,7 @@ async function moveUp(index) {
     if (index === 5)
         z = config.moveUpZCar;
     else
-        let z = config.moveUpZ[index - 1];
+        z = config.moveUpZ[index - 1];
 
     // duration of the move is dependent on the end position index
     // this is crucial to prevent fast movements
