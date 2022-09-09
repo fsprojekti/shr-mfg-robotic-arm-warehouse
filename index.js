@@ -151,16 +151,16 @@ function calculateMoveToDuration(startLocation, endLocation) {
     // moves from the reset location
     else if (startLocation === "reset") {
         if (endLocation === "D2" || endLocation === "D3")
-            duration = config.moveToDurationDefault/2;
+            duration = config.moveToDurationDefault / 2;
         else if (endLocation === "D1" || endLocation === "D4")
-            duration = config.moveToDurationDefault/2;
+            duration = config.moveToDurationDefault / 2;
     } else if (endLocation === "reset") {
         if (startLocation === "D2" || startLocation === "D3")
-            duration = config.moveToDurationDefault/2;
+            duration = config.moveToDurationDefault / 2;
         else if (startLocation === "D1" || startLocation === "D4")
-            duration = config.moveToDurationDefault/2;
+            duration = config.moveToDurationDefault / 2;
     }
-	
+
     return duration;
 }
 
@@ -194,7 +194,7 @@ async function load(packageId, receiveBufferIndex) {
 // unload a package - from any of the storage docks, receive buffer or dispatch buffer to the dispatch dock
 async function unload(startLocation, packageIndex) {
 
-		console.log("starting an unload from: (" + startLocation + ", " + packageIndex + ")");
+    console.log("starting an unload from: (" + startLocation + ", " + packageIndex + ")");
 
     try {
         await goReset(calculateMoveToDuration("", "reset"));
@@ -246,27 +246,27 @@ async function unload(startLocation, packageIndex) {
 // the starting location can be any of the 4 storage docks or of the 2 buffer docks
 async function move(startLocation, packageIndex) {
 
-	console.log("starting a move from: (" + startLocation + ", " + packageIndex + ")");
+    console.log("starting a move from: (" + startLocation + ", " + packageIndex + ")");
 
     let newLocation = await findNewLocation(startLocation);
 
 //	console.log(JSON.stringify(warehouse.queueReceiveBuffer));
 
-let packageId;
-	if(startLocation === "storageDock1")
-		packageId = warehouse.queueStorageDock1.items[packageIndex];
-	else if(startLocation === "storageDock2")
-		packageId = warehouse.queueStorageDock2.items[packageIndex];
-	else if(startLocation === "storageDock3")
-		packageId = warehouse.queueStorageDock3.items[packageIndex];
-	else if(startLocation === "storageDock4")
-		packageId = warehouse.queueStorageDock4.items[packageIndex];
-	else if(startLocation === "receiveBuffer")
-		packageId = warehouse.queueReceiveBuffer.items[packageIndex];
-	else if(startLocation === "dispatchBuffer")
-		packageId = warehouse.queueDispatchBuffer.items[packageIndex];
-	else
-		console.log("move() error: undefined start location");
+    let packageId;
+    if (startLocation === "storageDock1")
+        packageId = warehouse.queueStorageDock1.items[packageIndex];
+    else if (startLocation === "storageDock2")
+        packageId = warehouse.queueStorageDock2.items[packageIndex];
+    else if (startLocation === "storageDock3")
+        packageId = warehouse.queueStorageDock3.items[packageIndex];
+    else if (startLocation === "storageDock4")
+        packageId = warehouse.queueStorageDock4.items[packageIndex];
+    else if (startLocation === "receiveBuffer")
+        packageId = warehouse.queueReceiveBuffer.items[packageIndex];
+    else if (startLocation === "dispatchBuffer")
+        packageId = warehouse.queueDispatchBuffer.items[packageIndex];
+    else
+        console.log("move() error: undefined start location");
 
 
     let durationMove1 = calculateMoveToDuration("reset", startLocation);
@@ -282,19 +282,19 @@ let packageId;
             console.log("doing goStorageD1()");
             await goStorageD1(durationMove1);
         } else if (startLocation === "D2") {
-		console.log("doing goStorageD2()");
+            console.log("doing goStorageD2()");
             await goStorageD2(durationMove1);
         } else if (startLocation === "D3") {
-		console.log("doing goStorageD3()");
+            console.log("doing goStorageD3()");
             await goStorageD3(durationMove1);
         } else if (startLocation === "D4") {
-		console.log("doing goStorageD4()");
+            console.log("doing goStorageD4()");
             await goStorageD4(durationMove1);
         } else if (startLocation === "receiveBuffer") {
-		console.log("doing goReceiveBuffer()");
+            console.log("doing goReceiveBuffer()");
             await goReceiveBuffer(durationMove1);
         } else if (startLocation === "dispatchBuffer") {
-		console.log("doing goDispatchBuffer()");
+            console.log("doing goDispatchBuffer()");
             await goDispatchBuffer(durationMove1);
         }
 
@@ -312,12 +312,12 @@ let packageId;
             warehouse.queueStorageDock4.dequeue();
         else if (startLocation === "receiveBuffer")
             warehouse.queueReceiveBuffer.dequeue();
-            warehouse.queueDispatchBuffer.dequeue();
+        warehouse.queueDispatchBuffer.dequeue();
 
 
         let durationMove2 = calculateMoveToDuration(startLocation, newLocation);
 
-	console.log("package id:" + packageId);
+        console.log("package id:" + packageId);
 
         // move the robot arm to the new location
         if (newLocation === "D1") {
@@ -325,37 +325,37 @@ let packageId;
             await goStorageD1(durationMove2);
             console.log("doing suctionOFF()");
             await suctionOFF(warehouse.queueStorageDock1.topIndex + 1);
-		warehouse.queueStorageDock1.enqueue(packageId);
+            warehouse.queueStorageDock1.enqueue(packageId);
         } else if (newLocation === "D2") {
             console.log("doing goStorageD2()");
             await goStorageD2(durationMove2);
             console.log("doing suctionOFF()");
             await suctionOFF(warehouse.queueStorageDock2.topIndex + 1);
-		warehouse.queueStorageDock2.enqueue(packageId);
+            warehouse.queueStorageDock2.enqueue(packageId);
         } else if (newLocation === "D3") {
             console.log("doing goStorageD3()");
             await goStorageD3(durationMove2);
             console.log("doing suctionOFF()");
             await suctionOFF(warehouse.queueStorageDock3.topIndex + 1);
-		warehouse.queueStorageDock3.enqueue(packageId);
+            warehouse.queueStorageDock3.enqueue(packageId);
         } else if (newLocation === "D4") {
             console.log("doing goStorageD4()");
             await goStorageD4(durationMove2);
             console.log("doing suctionOFF()");
             await suctionOFF(warehouse.queueStorageDock4.topIndex + 1);
-		warehouse.queueStorageDock4.enqueue(packageId);
+            warehouse.queueStorageDock4.enqueue(packageId);
         } else if (newLocation === "receiveBuffer") {
             console.log("doing receiveBuffer()");
             await goReceiveBuffer(durationMove2)
             console.log("doing suctionOFF()");
             await suctionOFF(warehouse.queueReceiveBuffer.topIndex + 1);
-		warehouse.queueReceiveBuffer.enqueue(packageId);
+            warehouse.queueReceiveBuffer.enqueue(packageId);
         } else if (newLocation === "dispatchBuffer") {
             console.log("doing dispatchBuffer()");
             await goDispatchBuffer(durationMove2);
             console.log("doing suctionOFF()");
             await suctionOFF(warehouse.queueDispatchBuffer.topIndex + 1);
-		warehouse.queueDispatchBuffer.enqueue(packageId);
+            warehouse.queueDispatchBuffer.enqueue(packageId);
         }
 
         console.log("doing goReset()");
@@ -465,7 +465,7 @@ setInterval(async function () {
                 // check each of six docks where the package could potentially be stored
                 if ((itemIndex = warehouse.queueStorageDock1.items.indexOf(task.packageId)) !== -1) {
                     // package is in the storage dock D1
-			console.log("package is in the storage dock D1");
+                    console.log("package is in the storage dock D1");
                     let currentTopPackageIndex = warehouse.queueStorageDock1.topIndex;
 
                     // check if the package is at the top of the dock
@@ -491,7 +491,7 @@ setInterval(async function () {
 
                 } else if (warehouse.queueStorageDock2.items.indexOf(task.packageId) !== -1) {
                     // package is in the storage dock D2
-			console.log("package is in the storage dock D2");
+                    console.log("package is in the storage dock D2");
                     let currentTopPackageIndex = warehouse.queueStorageDock2.topIndex;
                     // check if the package is at the top of the dock
                     if ((currentTopPackageIndex - itemIndex) === 3) {
@@ -516,7 +516,7 @@ setInterval(async function () {
 
                 } else if (warehouse.queueStorageDock3.items.indexOf(task.packageId) !== -1) {
                     // package is in the storage dock D3
-			console.log("package is in the storage dock D3");
+                    console.log("package is in the storage dock D3");
                     let currentTopPackageIndex = warehouse.queueStorageDock3.topIndex;
                     // check if the package is at the top of the dock
                     if ((currentTopPackageIndex - itemIndex) === 3) {
@@ -541,7 +541,7 @@ setInterval(async function () {
 
                 } else if (warehouse.queueStorageDock4.items.indexOf(task.packageId) !== -1) {
                     // package is in the storage dock D4
-			console.log("package is in the storage dock D4");
+                    console.log("package is in the storage dock D4");
                     let currentTopPackageIndex = warehouse.queueStorageDock4.topIndex;
                     // check if the package is at the top of the dock
                     if ((currentTopPackageIndex - itemIndex) === 3) {
@@ -566,7 +566,7 @@ setInterval(async function () {
 
                 } else if (warehouse.queueReceiveBuffer.items.indexOf(task.packageId) !== -1) {
                     // package is in the receive buffer
-			console.log("package is in the receive buffer");
+                    console.log("package is in the receive buffer");
                     let currentTopPackageIndex = warehouse.queueReceiveBuffer.topIndex;
                     // check if the package is at the top of the dock
                     if ((currentTopPackageIndex - itemIndex) === 3) {
@@ -591,7 +591,7 @@ setInterval(async function () {
 
                 } else if (warehouse.queueDispatchBuffer.items.indexOf(task.packageId) !== -1) {
                     // package is in the dispatch buffer
-			console.log("package is in the dispatch buffer");
+                    console.log("package is in the dispatch buffer");
                     let currentTopPackageIndex = warehouse.queueDispatchBuffer.topIndex;
                     // check if the package is at the top of the dock
                     if ((currentTopPackageIndex - itemIndex) === 3) {
@@ -620,19 +620,29 @@ setInterval(async function () {
                 }
                 // if the package is in the storage, proceed with the task
                 if (promiseArray.length > 0) {
-                    Promise.all(promiseArray)
-                        .then(() => {
-                                console.log("the unload task successfully finished, removing the task from the queue")
-                                // remove the task from the queue
-                                tasksQueue.shift();
-                                console.log("tasks queue after unload: " + JSON.stringify(tasksQueue));
-                                busy = false;
-                            },
-                            (error) => {
-                                console.log("error while doing the unload task, task remains in the queue");
-                                console.log(error);
-                            })
+                    try {
+                        for (let i = 0; i < promiseArray.length; i++)
+                            await promiseArray[i]
+                    } catch (error) {
+                        console.log("error executing a sequence of async function calls during the unload task")
+                    }
                 }
+
+                // this executes move and unload tasks in parallel!!
+                // if (promiseArray.length > 0) {
+                //     Promise.all(promiseArray)
+                //         .then(() => {
+                //                 console.log("the unload task successfully finished, removing the task from the queue")
+                //                 // remove the task from the queue
+                //                 tasksQueue.shift();
+                //                 console.log("tasks queue after unload: " + JSON.stringify(tasksQueue));
+                //                 busy = false;
+                //             },
+                //             (error) => {
+                //                 console.log("error while doing the unload task, task remains in the queue");
+                //                 console.log(error);
+                //             })
+                // }
             } else if (task.mode === "move") {
 
                 let promiseMove = move(task.packageDock, task.dockPosition)
