@@ -16,16 +16,6 @@ import {
     // QueueRobot,
 } from "./queuelifo.js";
 
-// const queueStorageDock1 = new QueueA();
-// const queueStorageDock2 = new QueueB();
-// const queueReceiveBuffer = new QueueC();
-// const queueReceiveDock = new QueueD();
-// const queueStorageDock4 = new QueueE();
-// const queueStorageDock3 = new QueueF();
-// const queueDispatchBuffer = new QueueG();
-// const queueDispatchDock = new QueueH();
-// const queueRobot = new QueueRobot();
-
 export class Warehouse {
 
     constructor() {
@@ -252,37 +242,4 @@ export class Warehouse {
             }
         });
     }
-
-// queueReceiveBuffer.enqueue(JSON.stringify(ID.ReceiveBufferitemID)); //recevoir les données enregistré
-// function newReceiveWarehouse() {
-//     queueReceiveDock.enqueue("new item 1 : no #ID");
-//     queueReceiveDock.enqueue("new item 2 : no #ID");
-//     queueReceiveDock.enqueue("new item 3 : no #ID");
-//     queueReceiveDock.enqueue("new item 4 : no #ID");
-// }
-
 }
-
-// export {
-//     location,
-//    resetWarehouse,
-//    stateWarehouse,
-//    saveWarehouse,
-//    readWarehouse,
-//    queueDispatchBuffer,
-//    queueDispatchDock,
-//    queueReceiveBuffer,
-//    queueReceiveDock,
-//     queueStorageDock1,
-//     queueStorageDock2,
-//    queueStorageDock3,
-//    queueStorageDock4,
-//    QueueA,
-//    QueueB,
-//    QueueC,
-//    QueueD,
-//   QueueE,
-//   QueueF,
-//   QueueG,
-//   QueueH
-// };

@@ -450,6 +450,8 @@ async function goDown(packageIndex) {
             await moveDown(3);
         } else if (packageIndex === 4) {
             await moveDown(4);
+        } else if (packageIndex === 5) {
+            await moveDown(5);
         } else {
             console.log("goDown: incorrect package index: " + packageIndex);
             throw new Error("goDown: incorrect package index: " + packageIndex);
@@ -472,8 +474,12 @@ async function goDown(packageIndex) {
 async function moveDown(index) {
 
     console.log("doing moveDown()");
+    let z;
     // read the relative move by z axis from a config file
-    let z = config.moveDownZ[index - 1];
+    if (index === 5)
+        z = config.moveDownZCar;
+    else
+        z = config.moveDownZ[index - 1];
 
     // duration of the move is dependent on the end position index
     // this is crucial to prevent fast movements
@@ -511,6 +517,8 @@ async function goUp(packageIndex) {
             await moveUp(3);
         } else if (packageIndex === 4) {
             await moveUp(4);
+        } else if (packageIndex === 5) {
+            await moveUp(5);
         } else {
             console.log("goUp: incorrect package index: " + packageIndex);
             throw new Error("goUp: incorrect package index: " + packageIndex);
@@ -536,8 +544,12 @@ async function goUp(packageIndex) {
 async function moveUp(index) {
 
     console.log("doing moveUp()");
+    let z;
     // read the relative move by z axis from a config file
-    let z = config.moveUpZ[index - 1];
+    if (index === 5)
+        z = config.moveUpZCar;
+    else
+        let z = config.moveUpZ[index - 1];
 
     // duration of the move is dependent on the end position index
     // this is crucial to prevent fast movements

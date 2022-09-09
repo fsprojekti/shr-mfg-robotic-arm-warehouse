@@ -8,23 +8,9 @@ const app = express();
 const axios = require('axios').default;
 let Promise = require("es6-promise").Promise;
 
-// const warehouse = require("./warehouse.js").Warehouse;
-
-// add timestamps in front of all log messages
-// require('console-stamp')(console, '[HH:MM:ss.l]');
-
 // open file with configuration data
 //const fs = require('fs');
 const config = require("./config.json");
-
-// import {
-//    queueStorageDock1,
-//    queueStorageDock2,
-//    queueStorageDock3,
-//    queueStorageDock4,
-//    queueReceiveBuffer,
-//    queueDispatchBuffer
-//} from "./warehouse.js";
 
 import {Warehouse} from "./warehouse.js";
 
@@ -43,10 +29,6 @@ import {
     suctionON,
     suctionOFF,
 } from "./robotmotion.js";
-
-//Warehouse
-// import {location, readWarehouse, saveWarehouse, stateWarehouse} from "./warehouse.js";
-// import {Promise} from "es6-promise";
 
 // global variables
 let busy = false;
@@ -183,16 +165,16 @@ function calculateMoveToDuration(startLocation, endLocation) {
 }
 
 // load a package, from a receive dock to the receive buffer
-async function load(packageId, packageIndex) {
+async function load(packageId, receiveBufferIndex) {
 
     try {
         await goReset(calculateMoveToDuration("", "reset"));
         await goReceiveDock(calculateMoveToDuration("reset", "receiveDock"));
         // "packageIndex" for suctionOn() function is 0, because the first move is to the receive dock = robot car
-        await suctionON(0);
+        await suctionON(5);
         // packageIndex is the topIndex+1 of the receiveBuffer
         await goReceiveBuffer(warehouse.queueReceiveBuffer.topIndex + 1, calculateMoveToDuration("receiveDock", "receiveBuffer"));
-        await suctionOFF(packageIndex);
+        await suctionOFF(receiveBufferIndex);
         // move the package to the receive buffer queue
         warehouse.queueReceiveBuffer.enqueue(packageId);
 
@@ -244,7 +226,7 @@ async function unload(startLocation, packageIndex) {
 
         await goDispatchDock(calculateMoveToDuration(startLocation, "dispatchDock"));
         // "packageIndex" of suctionOFF() is 0, because the end location is dispatch dock = robot car
-        await suctionOFF(0);
+        await suctionOFF(5);
         await goReset(calculateMoveToDuration("dispatchDock", "reset"));
 
         return new Promise((resolve) => {
@@ -263,19 +245,7 @@ async function unload(startLocation, packageIndex) {
 async function move(startLocation, packageIndex) {
 
     let packageId = 0;
-    //  if (startLocation === "D1") {
-    //      packageId = queueStorageDock1[itemIndex]
-    //  } else if (startLocation === "D2") {
-    //      packageId = queueStorageDock2[itemIndex]
-    //  } else if (startLocation === "D3") {
-    //     packageId = queueStorageDock3[itemIndex]
-    //  } else if (startLocation === "D4") {
-    //      packageId = queueStorageDock4[itemIndex]
-    // } else if (startLocation === "receiveBuffer") {
-    //     packageId = queueReceiveBuffer[itemIndex]
-    // } else if (startLocation === "dispatchBuffer") {
-    //     packageId = queueDispatchBuffer[itemIndex]
-    // }
+
     let newLocation = await findNewLocation(startLocation);
 
     let durationMove1 = calculateMoveToDuration("reset", startLocation);
@@ -391,7 +361,7 @@ async function findNewLocation(currentLocation) {
         {"location": "D1", "topIndex": warehouse.queueStorageDock1.topIndex},
         {"location": "D2", "topIndex": warehouse.queueStorageDock2.topIndex},
         {"location": "D3", "topIndex": warehouse.queueStorageDock3.topIndex},
-        {"location": "D4", "topIndex": warehouse.queueStorageDock4.topIndex},
+        {"location": "D4", "topIndex": warehouse.queueStorageDock4.topIndex}
     ];
     // remove data for current location
     let queuesReduced = queues.filter(object => {
@@ -399,11 +369,9 @@ async function findNewLocation(currentLocation) {
     });
 
     let min = (a, f) => a.reduce((m, x) => m[f] < x[f] ? m : x);
-
     newLocation = min(queuesReduced, "topIndex")["location"];
 
     return newLocation;
-
 
 }
 
@@ -433,7 +401,7 @@ setInterval(async function () {
                 // receive buffer is not full, proceed with the load task
                 else {
                     console.log("calling the load() task...");
-                    let loadPromise = load(task.packageId, 0);
+                    let loadPromise = load(task.packageId, warehouse.receiveBuffer.topIndex + 1);
                     loadPromise.then(
                         (data) => {
                             console.log(data);
@@ -450,6 +418,8 @@ setInterval(async function () {
                                     tasksQueue.shift();
                                     console.log("tasks queue after load: " + JSON.stringify(tasksQueue));
                                     busy = false;
+                                    // check if the receive buffer is too full and create a move task (or tasks)
+                                    checkReceiveBuffer();
                                 },
                                 (error) => {
                                     console.log("error calling control app, task remains in the queue");
@@ -642,6 +612,7 @@ setInterval(async function () {
 
                 let promiseMove = move(task.packageDock, task.dockPosition)
                 promiseMove.then(() => {
+
                     console.log("the move task successfully finished, removing the task from the queue")
                     // remove the task from the queue
                     tasksQueue.shift();
@@ -681,68 +652,73 @@ setInterval(async function () {
     }
 }, 5000);
 
-// function that periodically checks if receive and dispatch buffers are too full, generates "move" tasks and
-//      ads them to the tasksQueue
-// packages are moved if more than two packages are currently in the queue
-setInterval(function () {
+// function that checks if receive buffer is too full, generates "move" tasks and ads them to the tasksQueue
+// packages are moved if more than pre-specified number of packages are currently in the queue
+function checkReceiveBuffer() {
 
     let receiveCounter = 0;
+
+    let i;
+    for (i = warehouse.queueReceiveBuffer.getSize(); i > config.maxReceiveBufferSizeForMove; i--) {
+
+        // check if a task with this packageId and packageDock === receiveBuffer and dockPosition === (i-1)
+        //      is already in the queue
+        if (tasksQueue.find(task => task.packageId = warehouse.queueReceiveBuffer[i - 1] &&
+            task.packageDock === "receiveBuffer" &&
+            task.dockPosition === (i - 1)) !== undefined) {
+            console.log("a move task for this packageId is already in the queue");
+        } else {
+            // create a request object for package in position 3 (index === 2) and add it to the queue
+            let reqObject = {}
+            reqObject.taskId = "internal-move";
+            reqObject.packageId = warehouse.queueReceiveBuffer[i - 1];
+            reqObject.packageDock = "receiveBuffer";
+            reqObject.dockPosition = i - 1;
+            reqObject.mode = "move";
+            tasksQueue.push(reqObject);
+            receiveCounter++;
+        }
+
+    }
+
+    if (receiveCounter !== 0) {
+        console.log(receiveCounter + " moves from receiveBuffer added to the tasksQueue");
+    }
+}
+
+// function that checks if receive buffer is too full, generates "move" tasks and ads them to the tasksQueue
+// packages are moved if more than pre-specified number of packages are currently in the queue
+function checkDispatchBuffer() {
+
     let dispatchCounter = 0;
 
-    // RECEIVE BUFFER
-    if (warehouse.queueReceiveBuffer.getSize() > 2) {
-        // create a request object for package in position 3 (index === 2) and add it to the queue
-        let reqObject = {}
-        reqObject.taskId = "null";
-        reqObject.packageId = warehouse.queueReceiveBuffer[2];
-        reqObject.packageDock = "receiveBuffer";
-        reqObject.dockPosition = 2;
-        reqObject.mode = "move";
-        tasksQueue.push(reqObject);
-        receiveCounter++;
-    }
-    if (warehouse.queueReceiveBuffer.getSize() > 3) {
-        // create a request object for package in position 4 (index === 3) and add it to the queue
-        let reqObject = {}
-        reqObject.taskId = "null";
-        reqObject.packageId = warehouse.queueReceiveBuffer[3];
-        reqObject.packageDock = "receiveBuffer";
-        reqObject.dockPosition = 3;
-        reqObject.mode = "move";
-        tasksQueue.push(reqObject);
-        receiveCounter++;
+    let i;
+    for (i = warehouse.queueDispatchBuffer.getSize(); i > config.maxDispatchBufferSizeForMove; i--) {
+
+        // check if a task with this packageId and packageDock === dispatchBuffer and dockPosition === (i-1)
+        //      is already in the queue
+        if (tasksQueue.find(task => task.packageId = warehouse.queueDispatchBuffer[i - 1] &&
+            task.packageDock === "receiveBuffer" &&
+            task.dockPosition === (i - 1)) !== undefined) {
+
+            console.log("a move task for this packageId is already in the queue");
+        } else {
+            // create a request object for package in position 3 (index === 2) and add it to the queue
+            let reqObject = {}
+            reqObject.taskId = "internal-move";
+            reqObject.packageId = warehouse.queueDispatchBuffer[i - 1];
+            reqObject.packageDock = "dispatchBuffer";
+            reqObject.dockPosition = i - 1;
+            reqObject.mode = "move";
+            tasksQueue.push(reqObject);
+            dispatchCounter++;
+        }
     }
 
-    // DISPATCH BUFFER
-    if (warehouse.queueDispatchBuffer.getSize() > 2) {
-        // create a request object for package in position 3 (index === 2) and add it to the queue
-        let reqObject = {}
-        reqObject.taskId = 0;
-        reqObject.packageId = warehouse.queueDispatchBuffer[2];
-        reqObject.packageDock = "dispatchBuffer";
-        reqObject.dockPosition = 2;
-        reqObject.mode = "move";
-        tasksQueue.push(reqObject);
-        dispatchCounter++;
+    if (dispatchCounter !== 0) {
+        console.log(dispatchCounter + " moves from dispatchBuffer added to the tasksQueue");
     }
-    if (warehouse.queueDispatchBuffer.getSize() > 3) {
-        // create a request object for package in position 4 (index === 3) and add it to the queue
-        let reqObject = {}
-        reqObject.taskId = 0;
-        reqObject.packageId = warehouse.queueDispatchBuffer[3];
-        reqObject.packageDock = "dispatchBuffer";
-        reqObject.dockPosition = 3;
-        reqObject.mode = "move";
-        tasksQueue.push(reqObject);
-        dispatchCounter++;
-    }
-
-    if (receiveCounter !== 0 || dispatchCounter !== 0) {
-        console.log(receiveCounter + " moves from receiveBuffer and " + dispatchCounter + " moves " +
-            "from dispatchCounter added to the tasksQueue");
-    }
-
-}, 5000)
+}
 
 export {
     warehouse

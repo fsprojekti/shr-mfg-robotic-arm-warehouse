@@ -13,8 +13,12 @@
   "dispatchDockLocation": {"x":  0, "y": -110, "z": 215},
   "moveDownZ": [-133,-126,-116,-106],
   "moveUpZ": [133,126,116,106],
+  "moveDownZCar": -106,
+  "moveUpZCar": 106,
   "goGrabZ": -20,
   "goReleaseZ": 20,
   "moveDurationDefault": 0.5,
-  "moveToDurationDefault": 300
+  "moveToDurationDefault": 300,
+  "maxReceiveBufferSizeForMove": 2,
+  "maxDispatchBufferSizeForMove": 2
 }
