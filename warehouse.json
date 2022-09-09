@@ -2,17 +2,19 @@
   "storageDock1": [
     "a"
   ],
-  "storageDock2": [],
+  "storageDock2": [
+    0
+  ],
   "storageDock3": [
     "c"
   ],
   "storageDock4": [
+    0,
     0
   ],
-  "dispatchBuffer": [],
-  "dispatchDock": [],
-  "receiveBuffer": [],
-  "receiveDock": [
-    "29b4c"
-  ]
+  "receiveBuffer": [
+    "mnk",
+    "mnk"
+  ],
+  "dispatchBuffer": []
 }

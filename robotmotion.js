@@ -5,11 +5,10 @@ const axios = require("axios").default;
 let Promise = require("es6-promise").Promise;
 
 const config = require("./config.json");
-
 const jetmaxUbuntuServerIpAddress = config.roboticArmIpAddress;
 
 //Warehouse
-import {location, saveWarehouse, stateWarehouse} from "./warehouse.js";
+import {warehouse} from "./index.js";
 
 // MOTION FUNCTIONS
 
@@ -18,12 +17,12 @@ async function goReset(duration) {
 
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
-    if (location === "reset")
+    if (warehouse.location === "reset")
         setTimeoutTime = 100;
-    else if (location === "receiveDock" || location === "receiveBuffer" || location === "dispatchDock" || location === "dispatchBuffer")
-        setTimeoutTime = 300;
-    else if (location === "D2" || location === "D3")
-        setTimeoutTime = 500;
+    else if (warehouse.location === "receiveDock" || warehouse.location === "receiveBuffer" || warehouse.location === "dispatchDock" || warehouse.location === "dispatchBuffer")
+        setTimeoutTime = 800;
+    else if (warehouse.location === "D2" || warehouse.location === "D3")
+        setTimeoutTime = 800;
     else
         setTimeoutTime = 1000;
 
@@ -34,11 +33,11 @@ async function goReset(duration) {
         await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
             params: {msg: {x: X, y: Y, z: Z, duration: duration}},
         });
-        await saveWarehouse();
-        await stateWarehouse();
+        await warehouse.saveWarehouse();
+        await warehouse.stateWarehouse();
         return new Promise((resolve) => {
             setTimeout(() => {
-                location = "reset";
+                warehouse.location = "reset";
                 resolve("resolved");
             }, setTimeoutTime);
         });
@@ -56,13 +55,13 @@ async function goStorageD1(duration) {
 
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
-    if (location === "D2")
-        setTimeoutTime = 300;
-    else if (location === "receiveBuffer")
+    if (warehouse.location === "D2")
         setTimeoutTime = 500;
-    else if (location === "D3")
+    else if (warehouse.location === "receiveBuffer")
+        setTimeoutTime = 800;
+    else if (warehouse.location === "D3")
         setTimeoutTime = 1800;
-    else if (location === "D4")
+    else if (warehouse.location === "D4")
         setTimeoutTime = 2000;
     else
         setTimeoutTime = 2000;
@@ -75,11 +74,11 @@ async function goStorageD1(duration) {
         await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
             params: {msg: {x: X, y: Y, z: Z, duration: duration}},
         });
-        await saveWarehouse();
-        await stateWarehouse();
+        await warehouse.saveWarehouse();
+        await warehouse.stateWarehouse();
         return new Promise((resolve) => {
             setTimeout(() => {
-                location = "D1";
+                warehouse.location = "D1";
                 resolve("resolved");
             }, setTimeoutTime);
         });
@@ -97,13 +96,13 @@ async function goStorageD2(duration) {
 
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
-    if (location === "D1")
-        setTimeoutTime = 300;
-    else if (location === "receiveBuffer")
-        setTimeoutTime = 300;
-    else if (location === "D3")
+    if (warehouse.location === "D1")
+        setTimeoutTime = 500;
+    else if (warehouse.location === "receiveBuffer")
+        setTimeoutTime = 800;
+    else if (warehouse.location === "D3")
         setTimeoutTime = 1800;
-    else if (location === "D4")
+    else if (warehouse.location === "D4")
         setTimeoutTime = 2000;
     else
         setTimeoutTime = 2000;
@@ -116,11 +115,11 @@ async function goStorageD2(duration) {
         await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
             params: {msg: {x: X, y: Y, z: Z, duration: duration}},
         });
-        await saveWarehouse();
-        await stateWarehouse();
+        await warehouse.saveWarehouse();
+        await warehouse.stateWarehouse();
         return new Promise((resolve) => {
             setTimeout(() => {
-                location = "D2";
+                warehouse.location = "D2";
                 resolve("resolved");
             }, setTimeoutTime);
         });
@@ -138,13 +137,13 @@ async function goStorageD3(duration) {
 
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
-    if (location === "D4")
-        setTimeoutTime = 300;
-    else if (location === "dispatchBuffer")
-        setTimeoutTime = 300;
-    else if (location === "D2")
+    if (warehouse.location === "D4")
+        setTimeoutTime = 500;
+    else if (warehouse.location === "dispatchBuffer")
+        setTimeoutTime = 800;
+    else if (warehouse.location === "D2")
         setTimeoutTime = 1800;
-    else if (location === "D1")
+    else if (warehouse.location === "D1")
         setTimeoutTime = 2000;
     else
         setTimeoutTime = 2000;
@@ -157,11 +156,11 @@ async function goStorageD3(duration) {
         await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
             params: {msg: {x: X, y: Y, z: Z, duration: duration}},
         });
-        await saveWarehouse();
-        await stateWarehouse();
+        await warehouse.saveWarehouse();
+        await warehouse.stateWarehouse();
         return new Promise((resolve) => {
             setTimeout(() => {
-                location = "D3";
+                warehouse.location = "D3";
                 resolve("resolved");
             }, setTimeoutTime);
         });
@@ -179,13 +178,13 @@ async function goStorageD4(duration) {
 
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
-    if (location === "D3")
-        setTimeoutTime = 300;
-    else if (location === "dispatchBuffer")
+    if (warehouse.location === "D3")
         setTimeoutTime = 500;
-    else if (location === "D2")
+    else if (warehouse.location === "dispatchBuffer")
+        setTimeoutTime = 800;
+    else if (warehouse.location === "D2")
         setTimeoutTime = 1800;
-    else if (location === "D1")
+    else if (warehouse.location === "D1")
         setTimeoutTime = 2000;
     else
         setTimeoutTime = 2000;
@@ -198,11 +197,11 @@ async function goStorageD4(duration) {
         await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
             params: {msg: {x: X, y: Y, z: Z, duration: duration}},
         });
-        await saveWarehouse();
-        await stateWarehouse();
+        await warehouse.saveWarehouse();
+        await warehouse.stateWarehouse();
         return new Promise((resolve) => {
             setTimeout(() => {
-                location = "D4";
+                warehouse.location = "D4";
                 resolve("resolved");
             }, setTimeoutTime);
         });
@@ -221,8 +220,8 @@ async function goReceiveBuffer(duration) {
 
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
-    if (location === "receiveDock")
-        setTimeoutTime = 500;
+    if (warehouse.location === "receiveDock")
+        setTimeoutTime = 800;
     else
         setTimeoutTime = 1000;
 
@@ -234,11 +233,11 @@ async function goReceiveBuffer(duration) {
         await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
             params: {msg: {x: X, y: Y, z: Z, duration: duration}},
         });
-        await saveWarehouse();
-        await stateWarehouse();
+        await warehouse.saveWarehouse();
+        await warehouse.stateWarehouse();
         return new Promise((resolve) => {
             setTimeout(() => {
-                location = "receiveBuffer";
+                warehouse.location = "receiveBuffer";
                 resolve("resolved");
             }, setTimeoutTime);
         });
@@ -257,13 +256,13 @@ async function goDispatchBuffer(duration) {
 
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
-    if (location === "D3")
-        setTimeoutTime = 300;
-    else if (location === "D4")
-        setTimeoutTime = 500;
-    else if (location === "D2")
+    if (warehouse.location === "D3")
+        setTimeoutTime = 800;
+    else if (warehouse.location === "D4")
+        setTimeoutTime = 800;
+    else if (warehouse.location === "D2")
         setTimeoutTime = 1500;
-    else if (location === "D1")
+    else if (warehouse.location === "D1")
         setTimeoutTime = 1800;
     else
         setTimeoutTime = 1500;
@@ -276,11 +275,11 @@ async function goDispatchBuffer(duration) {
         await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
             params: {msg: {x: X, y: Y, z: Z, duration: duration}},
         });
-        await saveWarehouse();
-        await stateWarehouse();
+        await warehouse.saveWarehouse();
+        await warehouse.stateWarehouse();
         return new Promise((resolve) => {
             setTimeout(() => {
-                location = "dispatchBuffer";
+                warehouse.location = "dispatchBuffer";
                 resolve("resolved");
             }, setTimeoutTime);
         });
@@ -296,9 +295,10 @@ async function goDispatchBuffer(duration) {
 //GO D
 async function goReceiveDock(duration) {
 
+    // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
-    if (location === "reset")
-        setTimeoutTime = 300;
+    if (warehouse.location === "reset")
+        setTimeoutTime = 800;
     else
         setTimeoutTime = 1000;
 
@@ -310,11 +310,11 @@ async function goReceiveDock(duration) {
         await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
             params: {msg: {x: X, y: Y, z: Z, duration: duration}},
         });
-        await saveWarehouse();
-        await stateWarehouse();
+        await warehouse.saveWarehouse();
+        await warehouse.stateWarehouse();
         return new Promise((resolve) => {
             setTimeout(() => {
-                location = "receiveDock";
+                warehouse.location = "receiveDock";
                 resolve("resolved");
             }, setTimeoutTime);
         });
@@ -332,15 +332,15 @@ async function goDispatchDock(duration) {
 
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
-    if (location === "D3")
+    if (warehouse.location === "D3")
         setTimeoutTime = 800;
-    else if (location === "D4")
+    else if (warehouse.location === "D4")
         setTimeoutTime = 1000;
-    else if (location === "D2")
+    else if (warehouse.location === "D2")
         setTimeoutTime = 8000;
-    else if (location === "D1")
+    else if (warehouse.location === "D1")
         setTimeoutTime = 1000;
-    else if (location === "dispatchBuffer")
+    else if (warehouse.location === "dispatchBuffer")
         setTimeoutTime = 500;
     else
         setTimeoutTime = 1000;
@@ -353,11 +353,11 @@ async function goDispatchDock(duration) {
         await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
             params: {msg: {x: X, y: Y, z: Z, duration: duration}},
         });
-        await saveWarehouse();
-        // await stateWarehouse();
+        await warehouse.saveWarehouse();
+        // await warehouse.stateWarehouse();
         return new Promise((resolve) => {
             setTimeout(() => {
-                location = "dispatchDock";
+                warehouse.location = "dispatchDock";
                 resolve("resolved");
             }, setTimeoutTime);
         });
@@ -387,8 +387,8 @@ async function suctionON(packageIndex) {
         await goRelease();
         console.log("doing goUp()");
         await goUp(packageIndex);
-        await saveWarehouse();
-        await stateWarehouse();
+        await warehouse.saveWarehouse();
+        await warehouse.stateWarehouse();
         return new Promise((resolve) => {
             //setTimeout(() => {
             resolve("resolved");
@@ -418,8 +418,8 @@ async function suctionOFF(packageIndex) {
         await goRelease();
         console.log("doing goUp()");
         await goUp(packageIndex);
-        await saveWarehouse();
-        await stateWarehouse();
+        await warehouse.saveWarehouse();
+        await warehouse.stateWarehouse();
 
         return new Promise((resolve) => {
             //setTimeout(() => {
