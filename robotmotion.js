@@ -218,7 +218,6 @@ async function goStorageD4(duration) {
 //GO C
 async function goReceiveBuffer(duration) {
 
-
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
     if (warehouse.location === "receiveDock")
