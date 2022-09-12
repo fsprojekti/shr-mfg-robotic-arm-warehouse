@@ -3,14 +3,14 @@ export class QueueA {
     constructor(length = 4) {
         this.items = [];
         this.maxlength = length;
-        this.topIndex = 0;
+        this.topIndex = -1;
     }
 
     enqueue(item) {
         if (this.items.length <= this.maxlength - 1) {
             this.topIndex = this.topIndex + 1;
             this.items.push(item);
-        } else console.log("INFO : The A queue is full");
+        } else console.log("INFO : The storage dock 1 is full");
     }
 
     dequeue() {
@@ -38,14 +38,14 @@ export class QueueB {
     constructor(length = 4) {
         this.items = [];
         this.maxlength = length;
-        this.topIndex = 0;
+        this.topIndex = -1;
     }
 
     enqueue(item) {
         if (this.items.length <= this.maxlength - 1) {
             this.topIndex = this.topIndex + 1;
             this.items.push(item);
-        } else console.log("INFO : The B queue is full");
+        } else console.log("INFO : The storage dock 2 is full");
     }
 
     dequeue() {
@@ -73,14 +73,14 @@ export class QueueC {
     constructor(length = 4) {
         this.items = [];
         this.maxlength = length;
-        this.topIndex = 0;
+        this.topIndex = -1;
     }
 
     enqueue(item) {
         if (this.items.length <= this.maxlength - 1) {
             this.topIndex = this.topIndex + 1;
             this.items.push(item);
-        } else console.log("INFO : The C queue is full");
+        } else console.log("INFO : The receive buffer is full");
     }
 
     dequeue() {
@@ -108,7 +108,7 @@ export class QueueD {
     constructor(length = 1) {
         this.items = [];
         this.maxlength = length;
-        this.topIndex = 0;
+        this.topIndex = -1;
     }
 
     enqueue(item) {
@@ -144,14 +144,14 @@ export class QueueE {
     constructor(length = 4) {
         this.items = [];
         this.maxlength = length;
-        this.topIndex = 0;
+        this.topIndex = -1;
     }
 
     enqueue(item) {
         if (this.items.length <= this.maxlength - 1) {
             this.topIndex = this.topIndex + 1;
             this.items.push(item);
-        } else console.log("INFO : The E queue is full");
+        } else console.log("INFO : The storage dock 4 is full");
     }
 
     dequeue() {
@@ -179,14 +179,14 @@ export class QueueF {
     constructor(length = 4) {
         this.items = [];
         this.maxlength = length;
-        this.topIndex = 0;
+        this.topIndex = -1;
     }
 
     enqueue(item) {
         if (this.items.length <= this.maxlength - 1) {
             this.topIndex = this.topIndex + 1;
             this.items.push(item);
-        } else console.log("INFO : The F queue is full");
+        } else console.log("INFO : The storage dock 3 is full");
     }
 
     dequeue() {
@@ -214,14 +214,14 @@ export class QueueG {
     constructor(length = 4) {
         this.items = [];
         this.maxlength = length;
-        this.topIndex = 0;
+        this.topIndex = -1;
     }
 
     enqueue(item) {
         if (this.items.length <= this.maxlength - 1) {
             this.topIndex = this.topIndex + 1;
             this.items.push(item);
-        } else console.log("INFO : The G queue is full");
+        } else console.log("INFO : The dispatch buffer is full");
     }
 
     dequeue() {
@@ -249,7 +249,7 @@ export class QueueH {
     constructor(length = 1) {
         this.items = [];
         this.maxlength = length;
-        this.topIndex = 0;
+        this.topIndex = -1;
     }
 
     enqueue(item) {

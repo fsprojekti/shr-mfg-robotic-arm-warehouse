@@ -21,10 +21,13 @@ async function goReset(duration) {
         setTimeoutTime = 100;
     else if (warehouse.location === "receiveDock" || warehouse.location === "receiveBuffer" || warehouse.location === "dispatchDock" || warehouse.location === "dispatchBuffer")
         setTimeoutTime = 800;
-    else if (warehouse.location === "D2" || warehouse.location === "D3")
-        setTimeoutTime = 800;
+    else if (warehouse.location === "storageDock2" || warehouse.location === "storageDock3")
+        setTimeoutTime = 1200;
     else
-        setTimeoutTime = 1000;
+        setTimeoutTime = 1500;
+
+	
+	console.log("goReset timeout time: " + setTimeoutTime);
 
     try {
         let X = config.resetLocation.x;
@@ -55,16 +58,18 @@ async function goStorageD1(duration) {
 
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
-    if (warehouse.location === "D2")
-        setTimeoutTime = 500;
+    if (warehouse.location === "storageDock2")
+        setTimeoutTime = 800;
     else if (warehouse.location === "receiveBuffer")
         setTimeoutTime = 800;
-    else if (warehouse.location === "D3")
+    else if (warehouse.location === "storageDock3")
         setTimeoutTime = 1800;
-    else if (warehouse.location === "D4")
+    else if (warehouse.location === "storageDock4")
         setTimeoutTime = 2000;
     else
         setTimeoutTime = 2000;
+
+	console.log("goStorageD1 timeout time: " + setTimeoutTime);
 
     try {
         let X = config.storageD1Location.x;
@@ -78,7 +83,7 @@ async function goStorageD1(duration) {
         await warehouse.stateWarehouse();
         return new Promise((resolve) => {
             setTimeout(() => {
-                warehouse.location = "D1";
+                warehouse.location = "storageDock1";
                 resolve("resolved");
             }, setTimeoutTime);
         });
@@ -96,16 +101,18 @@ async function goStorageD2(duration) {
 
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
-    if (warehouse.location === "D1")
-        setTimeoutTime = 500;
+    if (warehouse.location === "storageDock1")
+        setTimeoutTime = 800;
     else if (warehouse.location === "receiveBuffer")
         setTimeoutTime = 800;
-    else if (warehouse.location === "D3")
+    else if (warehouse.location === "storageDock3")
         setTimeoutTime = 1800;
-    else if (warehouse.location === "D4")
+    else if (warehouse.location === "storageDock4")
         setTimeoutTime = 2000;
     else
         setTimeoutTime = 2000;
+
+	console.log("goStorageD2 timeout time: " + setTimeoutTime);
 
     try {
         let X = config.storageD2Location.x;
@@ -119,7 +126,7 @@ async function goStorageD2(duration) {
         await warehouse.stateWarehouse();
         return new Promise((resolve) => {
             setTimeout(() => {
-                warehouse.location = "D2";
+                warehouse.location = "storageDock2";
                 resolve("resolved");
             }, setTimeoutTime);
         });
@@ -137,16 +144,18 @@ async function goStorageD3(duration) {
 
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
-    if (warehouse.location === "D4")
-        setTimeoutTime = 500;
+    if (warehouse.location === "storageDock4")
+        setTimeoutTime = 800;
     else if (warehouse.location === "dispatchBuffer")
         setTimeoutTime = 800;
-    else if (warehouse.location === "D2")
+    else if (warehouse.location === "storageDock2")
         setTimeoutTime = 1800;
-    else if (warehouse.location === "D1")
+    else if (warehouse.location === "storageDock1")
         setTimeoutTime = 2000;
     else
         setTimeoutTime = 2000;
+
+	console.log("goStorageD3 timeout time: " + setTimeoutTime);
 
     try {
         let X = config.storageD3Location.x;
@@ -160,7 +169,7 @@ async function goStorageD3(duration) {
         await warehouse.stateWarehouse();
         return new Promise((resolve) => {
             setTimeout(() => {
-                warehouse.location = "D3";
+                warehouse.location = "storageDock3";
                 resolve("resolved");
             }, setTimeoutTime);
         });
@@ -178,16 +187,18 @@ async function goStorageD4(duration) {
 
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
-    if (warehouse.location === "D3")
-        setTimeoutTime = 500;
+    if (warehouse.location === "storageDock3")
+        setTimeoutTime = 800;
     else if (warehouse.location === "dispatchBuffer")
         setTimeoutTime = 800;
-    else if (warehouse.location === "D2")
+    else if (warehouse.location === "storageDock2")
         setTimeoutTime = 1800;
-    else if (warehouse.location === "D1")
+    else if (warehouse.location === "storageDock1")
         setTimeoutTime = 2000;
     else
         setTimeoutTime = 2000;
+
+	console.log("goStorageD4 timeout time: " + setTimeoutTime);
 
     try {
         let X = config.storageD4Location.x;
@@ -201,7 +212,7 @@ async function goStorageD4(duration) {
         await warehouse.stateWarehouse();
         return new Promise((resolve) => {
             setTimeout(() => {
-                warehouse.location = "D4";
+                warehouse.location = "storageDock4";
                 resolve("resolved");
             }, setTimeoutTime);
         });
@@ -224,6 +235,9 @@ async function goReceiveBuffer(duration) {
         setTimeoutTime = 800;
     else
         setTimeoutTime = 1000;
+
+	console.log("goReceiveBuffer timeout time: " + setTimeoutTime);
+
 
     try {
         let X = config.receiveBufferLocation.x;
@@ -257,16 +271,19 @@ async function goDispatchBuffer(duration) {
 
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
-    if (warehouse.location === "D3")
+    if (warehouse.location === "storageDock3")
         setTimeoutTime = 800;
-    else if (warehouse.location === "D4")
+    else if (warehouse.location === "storageDock4")
         setTimeoutTime = 800;
-    else if (warehouse.location === "D2")
+    else if (warehouse.location === "storageDock2")
         setTimeoutTime = 1500;
-    else if (warehouse.location === "D1")
+    else if (warehouse.location === "storageDock1")
         setTimeoutTime = 1800;
     else
         setTimeoutTime = 1500;
+
+	console.log("goDispatchBuffer timeout time: " + setTimeoutTime);
+
 
     try {
         let X = config.dispatchBufferLocation.x; //TODO: check
@@ -304,6 +321,8 @@ async function goReceiveDock(duration) {
     else
         setTimeoutTime = 1000;
 
+	console.log("goReceiveDock timeout time: " + setTimeoutTime);
+
     try {
         let X = config.receiveDockLocation.x; //TODO: check
         let Y = config.receiveDockLocation.y; //TODO: check
@@ -335,18 +354,20 @@ async function goDispatchDock(duration) {
 
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
-    if (warehouse.location === "D3")
+    if (warehouse.location === "storageDock3")
         setTimeoutTime = 800;
-    else if (warehouse.location === "D4")
+    else if (warehouse.location === "storageDock4")
         setTimeoutTime = 1000;
-    else if (warehouse.location === "D2")
-        setTimeoutTime = 8000;
-    else if (warehouse.location === "D1")
+    else if (warehouse.location === "storageDock2")
+        setTimeoutTime = 800;
+    else if (warehouse.location === "storageDock1")
         setTimeoutTime = 1000;
     else if (warehouse.location === "dispatchBuffer")
         setTimeoutTime = 500;
     else
         setTimeoutTime = 1000;
+
+	console.log("goDispatchDock timeout time: " + setTimeoutTime);
 
     try {
         let X = config.dispatchDockLocation.x; //TODO
@@ -380,6 +401,7 @@ async function suctionON(packageIndex) {
 
     try {
         console.log("doing goDown()");
+	console.log("location index:" + packageIndex);
         await goDown(packageIndex);
         console.log("doing goGrab()");
         await goGrab();
