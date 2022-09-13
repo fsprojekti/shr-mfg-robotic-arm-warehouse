@@ -1,1 +1,22 @@
-{"storageDock1":["d","c","a"],"storageDock2":["b"],"storageDock3":["aaa","mno"],"storageDock4":["eee","ace"],"receiveBuffer":["mnk"],"dispatchBuffer":[]}
+{
+  "storageDock1": [
+    "d",
+    "c",
+    "a"
+  ],
+  "storageDock2": [
+    "b"
+  ],
+  "storageDock3": [
+    "aaa",
+    "mno"
+  ],
+  "storageDock4": [
+    "eee",
+    "ace"
+  ],
+  "receiveBuffer": [
+    "mnk"
+  ],
+  "dispatchBuffer": []
+}
