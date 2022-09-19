@@ -419,7 +419,6 @@ setInterval(async function () {
             // if the task is to load a package from a car to the storage
             if (task.mode === "load") {
                 console.log("task mode is load");
-
                 // first check if the receive buffer is full
                 if (warehouse.queueReceiveBuffer.getSize() === 4)
                     console.log("error, receive buffer is full, load task not performed");
@@ -764,6 +763,12 @@ function checkDispatchBuffer() {
         console.log(dispatchCounter + " moves from dispatchBuffer added to the tasksQueue");
     }
 }
+
+setInterval(function() {
+
+    checkReceiveBuffer();
+
+}, 3000);
 
 export {
     warehouse
