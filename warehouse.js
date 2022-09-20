@@ -86,82 +86,82 @@ export class Warehouse {
     readWarehouse() {
         const warehouse = require("./warehouse.json");
 
-        if (warehouse.storageDock1[0] !== undefined) {
-            this.queueStorageDock1.enqueue(warehouse.storageDock1[0]);
+        if (warehouse.queueStorageDock1[0] !== undefined) {
+            this.queueStorageDock1.enqueue(warehouse.queueStorageDock1[0]);
         }
-        if (warehouse.storageDock1[1] !== undefined) {
-            this.queueStorageDock1.enqueue(warehouse.storageDock1[1]);
+        if (warehouse.queueStorageDock1[1] !== undefined) {
+            this.queueStorageDock1.enqueue(warehouse.queueStorageDock1[1]);
         }
-        if (warehouse.storageDock1[2] !== undefined) {
-            this.queueStorageDock1.enqueue(warehouse.storageDock1[2]);
+        if (warehouse.queueStorageDock1[2] !== undefined) {
+            this.queueStorageDock1.enqueue(warehouse.queueStorageDock1[2]);
         }
-        if (warehouse.storageDock1[3] !== undefined) {
-            this.queueStorageDock1.enqueue(warehouse.storageDock1[3]);
-        }
-
-        if (warehouse.storageDock2[0] !== undefined) {
-            this.queueStorageDock2.enqueue(warehouse.storageDock2[0]);
-        }
-        if (warehouse.storageDock2[1] !== undefined) {
-            this.queueStorageDock2.enqueue(warehouse.storageDock2[1]);
-        }
-        if (warehouse.storageDock2[2] !== undefined) {
-            this.queueStorageDock2.enqueue(warehouse.storageDock2[2]);
-        }
-        if (warehouse.storageDock2[3] !== undefined) {
-            this.queueStorageDock2.enqueue(warehouse.storageDock2[3]);
+        if (warehouse.queueStorageDock1[3] !== undefined) {
+            this.queueStorageDock1.enqueue(warehouse.queueStorageDock1[3]);
         }
 
-        if (warehouse.storageDock3[0] !== undefined) {
-            this.queueStorageDock3.enqueue(warehouse.storageDock3[0]);
+        if (warehouse.queueStorageDock2[0] !== undefined) {
+            this.queueStorageDock2.enqueue(warehouse.queueStorageDock2[0]);
         }
-        if (warehouse.storageDock3[1] !== undefined) {
-            this.queueStorageDock3.enqueue(warehouse.storageDock3[1]);
+        if (warehouse.queueStorageDock2[1] !== undefined) {
+            this.queueStorageDock2.enqueue(warehouse.queueStorageDock2[1]);
         }
-        if (warehouse.storageDock3[2] !== undefined) {
-            this.queueStorageDock3.enqueue(warehouse.storageDock3[2]);
+        if (warehouse.queueStorageDock2[2] !== undefined) {
+            this.queueStorageDock2.enqueue(warehouse.queueStorageDock2[2]);
         }
-        if (warehouse.storageDock3[3] !== undefined) {
-            this.queueStorageDock3.enqueue(warehouse.storageDock3[3]);
-        }
-
-        if (warehouse.storageDock4[0] !== undefined) {
-            this.queueStorageDock4.enqueue(warehouse.storageDock4[0]);
-        }
-        if (warehouse.storageDock4[1] !== undefined) {
-            this.queueStorageDock4.enqueue(warehouse.storageDock4[1]);
-        }
-        if (warehouse.storageDock4[2] !== undefined) {
-            this.queueStorageDock4.enqueue(warehouse.storageDock4[2]);
-        }
-        if (warehouse.storageDock4[3] !== undefined) {
-            this.queueStorageDock4.enqueue(warehouse.storageDock4[3]);
+        if (warehouse.queueStorageDock2[3] !== undefined) {
+            this.queueStorageDock2.enqueue(warehouse.queueStorageDock2[3]);
         }
 
-        if (warehouse.dispatchBuffer[0] !== undefined) {
-            this.queueDispatchBuffer.enqueue(warehouse.dispatchBuffer[0]);
+        if (warehouse.queueStorageDock3[0] !== undefined) {
+            this.queueStorageDock3.enqueue(warehouse.queueStorageDock3[0]);
         }
-        if (warehouse.dispatchBuffer[1] !== undefined) {
-            this.queueDispatchBuffer.enqueue(warehouse.dispatchBuffer[1]);
+        if (warehouse.queueStorageDock3[1] !== undefined) {
+            this.queueStorageDock3.enqueue(warehouse.queueStorageDock3[1]);
         }
-        if (warehouse.dispatchBuffer[2] !== undefined) {
-            this.queueDispatchBuffer.enqueue(warehouse.dispatchBuffer[2]);
+        if (warehouse.queueStorageDock3[2] !== undefined) {
+            this.queueStorageDock3.enqueue(warehouse.queueStorageDock3[2]);
         }
-        if (warehouse.dispatchBuffer[3] !== undefined) {
-            this.queueDispatchBuffer.enqueue(warehouse.dispatchBuffer[3]);
+        if (warehouse.queueStorageDock3[3] !== undefined) {
+            this.queueStorageDock3.enqueue(warehouse.queueStorageDock3[3]);
         }
 
-        if (warehouse.receiveBuffer[0] !== undefined) {
-            this.queueReceiveBuffer.enqueue(warehouse.receiveBuffer[0]);
+        if (warehouse.queueStorageDock4[0] !== undefined) {
+            this.queueStorageDock4.enqueue(warehouse.queueStorageDock4[0]);
         }
-        if (warehouse.receiveBuffer[1] !== undefined) {
-            this.queueReceiveBuffer.enqueue(warehouse.receiveBuffer[1]);
+        if (warehouse.queueStorageDock4[1] !== undefined) {
+            this.queueStorageDock4.enqueue(warehouse.queueStorageDock4[1]);
         }
-        if (warehouse.receiveBuffer[2] !== undefined) {
-            this.queueReceiveBuffer.enqueue(warehouse.receiveBuffer[2]);
+        if (warehouse.queueStorageDock4[2] !== undefined) {
+            this.queueStorageDock4.enqueue(warehouse.queueStorageDock4[2]);
         }
-        if (warehouse.receiveBuffer[3] !== undefined) {
-            this.queueReceiveBuffer.enqueue(warehouse.receiveBuffer[3]);
+        if (warehouse.queueStorageDock4[3] !== undefined) {
+            this.queueStorageDock4.enqueue(warehouse.queueStorageDock4[3]);
+        }
+
+        if (warehouse.queueDispatchBuffer[0] !== undefined) {
+            this.queueDispatchBuffer.enqueue(warehouse.queueDispatchBuffer[0]);
+        }
+        if (warehouse.queueDispatchBuffer[1] !== undefined) {
+            this.queueDispatchBuffer.enqueue(warehouse.queueDispatchBuffer[1]);
+        }
+        if (warehouse.queueDispatchBuffer[2] !== undefined) {
+            this.queueDispatchBuffer.enqueue(warehouse.queueDispatchBuffer[2]);
+        }
+        if (warehouse.queueDispatchBuffer[3] !== undefined) {
+            this.queueDispatchBuffer.enqueue(warehouse.queueDispatchBuffer[3]);
+        }
+
+        if (warehouse.queueReceiveBuffer[0] !== undefined) {
+            this.queueReceiveBuffer.enqueue(warehouse.queueReceiveBuffer[0]);
+        }
+        if (warehouse.queueReceiveBuffer[1] !== undefined) {
+            this.queueReceiveBuffer.enqueue(warehouse.queueReceiveBuffer[1]);
+        }
+        if (warehouse.queueReceiveBuffer[2] !== undefined) {
+            this.queueReceiveBuffer.enqueue(warehouse.queueReceiveBuffer[2]);
+        }
+        if (warehouse.queueReceiveBuffer[3] !== undefined) {
+            this.queueReceiveBuffer.enqueue(warehouse.queueReceiveBuffer[3]);
         }
 
         let warehouseObj = {
@@ -175,66 +175,66 @@ export class Warehouse {
     saveWarehouse() {
 
         let saveDataObject = {};
-        saveDataObject.storageDock1 = [];
-        saveDataObject.storageDock2 = [];
-        saveDataObject.storageDock3 = [];
-        saveDataObject.storageDock4 = [];
-        saveDataObject.receiveBuffer = [];
-        saveDataObject.dispatchBuffer = [];
+        saveDataObject.queueStorageDock1 = [];
+        saveDataObject.queueStorageDock2 = [];
+        saveDataObject.queueStorageDock3 = [];
+        saveDataObject.queueStorageDock4 = [];
+        saveDataObject.queueReceiveBuffer = [];
+        saveDataObject.queueDispatchBuffer = [];
 
         if (this.queueStorageDock1.items[0] !== undefined)
-            saveDataObject.storageDock1[0] = this.queueStorageDock1.items[0];
+            saveDataObject.queueStorageDock1[0] = this.queueStorageDock1.items[0];
         if (this.queueStorageDock1.items[1] !== undefined)
-            saveDataObject.storageDock1[1] = this.queueStorageDock1.items[1];
+            saveDataObject.queueStorageDock1[1] = this.queueStorageDock1.items[1];
         if (this.queueStorageDock1.items[2] !== undefined)
-            saveDataObject.storageDock1[2] = this.queueStorageDock1.items[2];
+            saveDataObject.queueStorageDock1[2] = this.queueStorageDock1.items[2];
         if (this.queueStorageDock1.items[3] !== undefined)
-            saveDataObject.storageDock1[3] = this.queueStorageDock1.items[3];
+            saveDataObject.queueStorageDock1[3] = this.queueStorageDock1.items[3];
 
         if (this.queueStorageDock2.items[0] !== undefined)
-            saveDataObject.storageDock2[0] = this.queueStorageDock2.items[0];
+            saveDataObject.queueStorageDock2[0] = this.queueStorageDock2.items[0];
         if (this.queueStorageDock2.items[1] !== undefined)
-            saveDataObject.storageDock2[1] = this.queueStorageDock2.items[1];
+            saveDataObject.queueStorageDock2[1] = this.queueStorageDock2.items[1];
         if (this.queueStorageDock2.items[2] !== undefined)
-            saveDataObject.storageDock2[2] = this.queueStorageDock2.items[2];
+            saveDataObject.queueStorageDock2[2] = this.queueStorageDock2.items[2];
         if (this.queueStorageDock2.items[3] !== undefined)
-            saveDataObject.storageDock2[3] = this.queueStorageDock2.items[3];
+            saveDataObject.queueStorageDock2[3] = this.queueStorageDock2.items[3];
 
         if (this.queueStorageDock3.items[0] !== undefined)
-            saveDataObject.storageDock3[0] = this.queueStorageDock3.items[0];
+            saveDataObject.queueStorageDock3[0] = this.queueStorageDock3.items[0];
         if (this.queueStorageDock3.items[1] !== undefined)
-            saveDataObject.storageDock3[1] = this.queueStorageDock3.items[1];
+            saveDataObject.queueStorageDock3[1] = this.queueStorageDock3.items[1];
         if (this.queueStorageDock3.items[2] !== undefined)
-            saveDataObject.storageDock3[2] = this.queueStorageDock3.items[2];
+            saveDataObject.queueStorageDock3[2] = this.queueStorageDock3.items[2];
         if (this.queueStorageDock3.items[3] !== undefined)
-            saveDataObject.storageDock3[3] = this.queueStorageDock3.items[3];
+            saveDataObject.queueStorageDock3[3] = this.queueStorageDock3.items[3];
 
         if (this.queueStorageDock4.items[0] !== undefined)
-            saveDataObject.storageDock4[0] = this.queueStorageDock4.items[0];
+            saveDataObject.queueStorageDock4[0] = this.queueStorageDock4.items[0];
         if (this.queueStorageDock4.items[1] !== undefined)
-            saveDataObject.storageDock4[1] = this.queueStorageDock4.items[1];
+            saveDataObject.queueStorageDock4[1] = this.queueStorageDock4.items[1];
         if (this.queueStorageDock4.items[2] !== undefined)
-            saveDataObject.storageDock4[2] = this.queueStorageDock4.items[2];
+            saveDataObject.queueStorageDock4[2] = this.queueStorageDock4.items[2];
         if (this.queueStorageDock4.items[3] !== undefined)
-            saveDataObject.storageDock4[3] = this.queueStorageDock4.items[3];
+            saveDataObject.queueStorageDock4[3] = this.queueStorageDock4.items[3];
 
         if (this.queueReceiveBuffer.items[0] !== undefined)
-            saveDataObject.receiveBuffer[0] = this.queueReceiveBuffer.items[0];
+            saveDataObject.queueReceiveBuffer[0] = this.queueReceiveBuffer.items[0];
         if (this.queueReceiveBuffer.items[1] !== undefined)
-            saveDataObject.receiveBuffer[1] = this.queueReceiveBuffer.items[1];
+            saveDataObject.queueReceiveBuffer[1] = this.queueReceiveBuffer.items[1];
         if (this.queueReceiveBuffer.items[2] !== undefined)
-            saveDataObject.receiveBuffer[2] = this.queueReceiveBuffer.items[2];
+            saveDataObject.queueReceiveBuffer[2] = this.queueReceiveBuffer.items[2];
         if (this.queueReceiveBuffer.items[3] !== undefined)
-            saveDataObject.receiveBuffer[3] = this.queueReceiveBuffer.items[3];
+            saveDataObject.queueReceiveBuffer[3] = this.queueReceiveBuffer.items[3];
 
         if (this.queueDispatchBuffer.items[0] !== undefined)
-            saveDataObject.dispatchBuffer[0] = this.queueDispatchBuffer.items[0];
+            saveDataObject.queueDispatchBuffer[0] = this.queueDispatchBuffer.items[0];
         if (this.queueDispatchBuffer.items[1] !== undefined)
-            saveDataObject.dispatchBuffer[1] = this.queueDispatchBuffer.items[1];
+            saveDataObject.queueDispatchBuffer[1] = this.queueDispatchBuffer.items[1];
         if (this.queueDispatchBuffer.items[2] !== undefined)
-            saveDataObject.dispatchBuffer[2] = this.queueDispatchBuffer.items[2];
+            saveDataObject.queueDispatchBuffer[2] = this.queueDispatchBuffer.items[2];
         if (this.queueDispatchBuffer.items[3] !== undefined)
-            saveDataObject.dispatchBuffer[3] = this.queueDispatchBuffer.items[3];
+            saveDataObject.queueDispatchBuffer[3] = this.queueDispatchBuffer.items[3];
 
         fs.writeFile("warehouse.json", JSON.stringify(saveDataObject), function (erreur) {
             if (erreur) {

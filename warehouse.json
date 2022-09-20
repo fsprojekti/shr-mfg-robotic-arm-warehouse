@@ -1,22 +1,20 @@
 {
-  "storageDock1": [
-    "d",
+  "queueStorageDock1": [],
+  "queueStorageDock2": [
+    "b",
+    "mbm"
+  ],
+  "queueStorageDock3": [
     "c",
-    "a"
+    "zxa"
   ],
-  "storageDock2": [
-    "b"
+  "queueStorageDock4": [
+    "d",
+    "zxa",
+    "d"
   ],
-  "storageDock3": [
-    "aaa",
-    "mno"
+  "queueReceiveBuffer": [
+    "jkl"
   ],
-  "storageDock4": [
-    "eee",
-    "ace"
-  ],
-  "receiveBuffer": [
-    "mnk"
-  ],
-  "dispatchBuffer": []
+  "queueDispatchBuffer": []
 }

@@ -59,11 +59,11 @@ async function goStorageD1(duration) {
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
     if (warehouse.location === "storageDock2")
-        setTimeoutTime = 800;
+        setTimeoutTime = 1000;
     else if (warehouse.location === "receiveBuffer")
-        setTimeoutTime = 800;
+        setTimeoutTime = 1000;
     else if (warehouse.location === "storageDock3")
-        setTimeoutTime = 1800;
+        setTimeoutTime = 2000;
     else if (warehouse.location === "storageDock4")
         setTimeoutTime = 2000;
     else
@@ -102,9 +102,9 @@ async function goStorageD2(duration) {
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
     if (warehouse.location === "storageDock1")
-        setTimeoutTime = 800;
+        setTimeoutTime = 1000;
     else if (warehouse.location === "receiveBuffer")
-        setTimeoutTime = 800;
+        setTimeoutTime = 1000;
     else if (warehouse.location === "storageDock3")
         setTimeoutTime = 1800;
     else if (warehouse.location === "storageDock4")
@@ -145,11 +145,11 @@ async function goStorageD3(duration) {
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
     if (warehouse.location === "storageDock4")
-        setTimeoutTime = 800;
+        setTimeoutTime = 1000;
     else if (warehouse.location === "dispatchBuffer")
-        setTimeoutTime = 800;
+        setTimeoutTime = 1000;
     else if (warehouse.location === "storageDock2")
-        setTimeoutTime = 1800;
+        setTimeoutTime = 2000;
     else if (warehouse.location === "storageDock1")
         setTimeoutTime = 2000;
     else
@@ -188,11 +188,11 @@ async function goStorageD4(duration) {
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
     if (warehouse.location === "storageDock3")
-        setTimeoutTime = 800;
+        setTimeoutTime = 1000;
     else if (warehouse.location === "dispatchBuffer")
-        setTimeoutTime = 800;
+        setTimeoutTime = 1000;
     else if (warehouse.location === "storageDock2")
-        setTimeoutTime = 1800;
+        setTimeoutTime = 2000;
     else if (warehouse.location === "storageDock1")
         setTimeoutTime = 2000;
     else
@@ -232,9 +232,9 @@ async function goReceiveBuffer(duration) {
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
     if (warehouse.location === "receiveDock")
-        setTimeoutTime = 800;
+        setTimeoutTime = 1500;
     else
-        setTimeoutTime = 1000;
+        setTimeoutTime = 1500;
 
 	console.log("goReceiveBuffer timeout time: " + setTimeoutTime);
 
@@ -272,15 +272,15 @@ async function goDispatchBuffer(duration) {
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
     if (warehouse.location === "storageDock3")
-        setTimeoutTime = 800;
+        setTimeoutTime = 1000;
     else if (warehouse.location === "storageDock4")
-        setTimeoutTime = 800;
+        setTimeoutTime = 1000;
     else if (warehouse.location === "storageDock2")
         setTimeoutTime = 1500;
     else if (warehouse.location === "storageDock1")
         setTimeoutTime = 1800;
     else
-        setTimeoutTime = 1500;
+        setTimeoutTime = 2000;
 
 	console.log("goDispatchBuffer timeout time: " + setTimeoutTime);
 
@@ -317,7 +317,7 @@ async function goReceiveDock(duration) {
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
     if (warehouse.location === "reset")
-        setTimeoutTime = 800;
+        setTimeoutTime = 1000;
     else
         setTimeoutTime = 1000;
 
@@ -355,17 +355,17 @@ async function goDispatchDock(duration) {
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
     if (warehouse.location === "storageDock3")
-        setTimeoutTime = 800;
+        setTimeoutTime = 1200;
     else if (warehouse.location === "storageDock4")
-        setTimeoutTime = 1000;
+        setTimeoutTime = 1500;
     else if (warehouse.location === "storageDock2")
-        setTimeoutTime = 800;
+        setTimeoutTime = 1200;
     else if (warehouse.location === "storageDock1")
-        setTimeoutTime = 1000;
+        setTimeoutTime = 1500;
     else if (warehouse.location === "dispatchBuffer")
-        setTimeoutTime = 500;
-    else
         setTimeoutTime = 1000;
+    else
+        setTimeoutTime = 1500;
 
 	console.log("goDispatchDock timeout time: " + setTimeoutTime);
 
@@ -467,14 +467,15 @@ async function suctionOFF(packageIndex) {
 async function goDown(packageIndex) {
 
     try {
-        if (packageIndex === 0 || packageIndex === 1) {
+
+        if (packageIndex === 0) {
+            await moveDown(0);
+        } else if (packageIndex === 1) {
             await moveDown(1);
         } else if (packageIndex === 2) {
             await moveDown(2);
         } else if (packageIndex === 3) {
             await moveDown(3);
-        } else if (packageIndex === 4) {
-            await moveDown(4);
         } else if (packageIndex === 5) {
             await moveDown(5);
         } else {
@@ -504,7 +505,7 @@ async function moveDown(index) {
     if (index === 5)
         z = config.moveDownZCar;
     else
-        z = config.moveDownZ[index - 1];
+        z = config.moveDownZ[index];
 
     // duration of the move is dependent on the end position index
     // this is crucial to prevent fast movements
@@ -517,7 +518,7 @@ async function moveDown(index) {
         return new Promise((resolve) => {
             setTimeout(() => {
                 resolve("resolved");
-            }, 1000);
+            }, 1500);
         });
     } catch (error) {
         console.log("moveDown() error");
@@ -534,14 +535,14 @@ async function moveDown(index) {
 async function goUp(packageIndex) {
 
     try {
-        if (packageIndex === 0 || packageIndex === 1) {
+        if (packageIndex === 0) {
+            await moveUp(0);
+        } else if (packageIndex === 1) {
             await moveUp(1);
         } else if (packageIndex === 2) {
             await moveUp(2);
         } else if (packageIndex === 3) {
             await moveUp(3);
-        } else if (packageIndex === 4) {
-            await moveUp(4);
         } else if (packageIndex === 5) {
             await moveUp(5);
         } else {
@@ -574,7 +575,7 @@ async function moveUp(index) {
     if (index === 5)
         z = config.moveUpZCar;
     else
-        z = config.moveUpZ[index - 1];
+        z = config.moveUpZ[index];
 
     // duration of the move is dependent on the end position index
     // this is crucial to prevent fast movements
@@ -587,7 +588,7 @@ async function moveUp(index) {
         return new Promise((resolve) => {
             setTimeout(() => {
                 resolve("resolved");
-            }, 1000);
+            }, 1500);
         });
     } catch (error) {
         console.log("moveUp() error");

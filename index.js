@@ -419,7 +419,6 @@ setInterval(async function () {
             // if the task is to load a package from a car to the storage
             if (task.mode === "load") {
                 console.log("task mode is load");
-
                 // first check if the receive buffer is full
                 if (warehouse.queueReceiveBuffer.getSize() === 4)
                     console.log("error, receive buffer is full, load task not performed");
@@ -436,22 +435,22 @@ setInterval(async function () {
                             let axiosPromise = axios.get("http://" + config.controlAppUrl + "/dispatchFinished", {
                                 params: {taskId: tasksQueue[0].taskId},
                             });
-                            axiosPromise.then(
-                                (data) => {
-                                    console.log(data);
+                            //axiosPromise.then(
+                            //    (data) => {
+                            //        console.log(data);
                                     console.log("/dispatchFinished successfully called, removing a task from the queue")
                                     tasksQueue.shift();
                                     console.log("tasks queue after load: " + JSON.stringify(tasksQueue));
                                     busy = false;
                                     // check if the receive buffer is too full and create a move task (or tasks)
                                     checkReceiveBuffer();
-                                },
-                                (error) => {
-                                    console.log("error calling control app, task remains in the queue");
-                                    console.log(error);
-                                    busy = false;
-                                }
-                            )
+                              //  },
+                              //  (error) => {
+                              //      console.log("error calling control app, task remains in the queue");
+                              //      console.log(error);
+                              //      busy = false;
+                              //  }
+                            //)
                         },
                         (error) => {
                             console.log("error while doing the LOAD task, task remains in the queue");
@@ -764,6 +763,12 @@ function checkDispatchBuffer() {
         console.log(dispatchCounter + " moves from dispatchBuffer added to the tasksQueue");
     }
 }
+
+setInterval(function() {
+
+    checkReceiveBuffer();
+
+}, 3000);
 
 export {
     warehouse
