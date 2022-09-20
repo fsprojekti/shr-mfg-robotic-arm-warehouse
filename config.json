@@ -18,7 +18,7 @@
   "goGrabZ": -17,
   "goReleaseZ": 17,
   "moveDurationDefault": 0.5,
-  "moveToDurationDefault": 200,
+  "moveToDurationDefault": 100,
   "maxReceiveBufferSizeForMove": 1,
   "maxDispatchBufferSizeForMove": 1
 }
