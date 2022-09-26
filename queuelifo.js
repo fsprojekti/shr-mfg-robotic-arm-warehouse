@@ -1,12 +1,19 @@
+import {createRequire} from "module";
+const require = createRequire(import.meta.url);
+let config = require("./config.json");
+
 //QUEUE STORAGE DOCK 1
 export class QueueA {
-    constructor(length = 4) {
+    constructor(length = config.dockSize) {
         this.items = [];
         this.maxlength = length;
         this.topIndex = -1;
     }
 
     enqueue(item) {
+	console.log("current dock 1 size: ", this.items.length);
+	console.log("adding item: ", item);
+	console.log("dock 1 max length: ", this.maxlength);
         if (this.items.length <= this.maxlength - 1) {
             this.topIndex = this.topIndex + 1;
             this.items.push(item);
@@ -35,7 +42,7 @@ export class QueueA {
 
 //QUEUE STORAGE DOCK 2
 export class QueueB {
-    constructor(length = 4) {
+    constructor(length = config.dockSize) {
         this.items = [];
         this.maxlength = length;
         this.topIndex = -1;
@@ -70,7 +77,7 @@ export class QueueB {
 
 //QUEUE RECEIVE BUFFER
 export class QueueC {
-    constructor(length = 4) {
+    constructor(length = config.dockSize) {
         this.items = [];
         this.maxlength = length;
         this.topIndex = -1;
@@ -141,7 +148,7 @@ export class QueueD {
 
 //QUEUE STORAGE DOCK 4
 export class QueueE {
-    constructor(length = 4) {
+    constructor(length = config.dockSize) {
         this.items = [];
         this.maxlength = length;
         this.topIndex = -1;
@@ -176,7 +183,7 @@ export class QueueE {
 
 //QUEUE STORAGE DOCK 3
 export class QueueF {
-    constructor(length = 4) {
+    constructor(length = config.dockSize) {
         this.items = [];
         this.maxlength = length;
         this.topIndex = -1;
@@ -211,7 +218,7 @@ export class QueueF {
 
 //QUEUE DISPATCH BUFFER
 export class QueueG {
-    constructor(length = 4) {
+    constructor(length = config.dockSize) {
         this.items = [];
         this.maxlength = length;
         this.topIndex = -1;

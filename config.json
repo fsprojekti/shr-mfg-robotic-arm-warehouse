@@ -1,7 +1,8 @@
 {
   "roboticArmIpAddress": "192.168.0.104:3000",
   "nodejsPort": 3001,
-  "controlAppUrl": "192.168.0.100:3000",
+  "controlAppUrl": "http://192.168.0.100:3000",
+  "dockSize": 4,
   "resetLocation": {"x":  0, "y": -162.94, "z": 212.8},
   "storageD1Location": {"x":  -184, "y": 80, "z": 215},
   "storageD2Location": {"x":  -184, "y": 17, "z": 215},
@@ -18,7 +19,7 @@
   "goGrabZ": -17,
   "goReleaseZ": 17,
   "moveDurationDefault": 0.5,
-  "moveToDurationDefault": 100,
+  "moveToDurationDefault": 200,
   "maxReceiveBufferSizeForMove": 1,
   "maxDispatchBufferSizeForMove": 1
 }

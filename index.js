@@ -75,21 +75,21 @@ app.get('/dispatch', function (req, res) {
     console.log("received a request to the endpoint /dispatch from IP: " + requestUrl);
 
 
-    if (!req.query.packageId || !req.query.taskId || !req.query.mode) {
-        console.log("Error, missing packageId and/or taskId and/or mode");
-        res.send({"state": "reject, missing packageId and/or taskId and/or mode"});
+    if (!req.query.packageId || !req.query.offerId || !req.query.mode) {
+        console.log("Error, missing packageId and/or offerId and/or mode");
+        res.send({"status": "reject, missing packageId and/or offerId and/or mode"});
     } else {
 
         console.log(req.query);
 
         // extract data from the request = source and target locations for the requested transfer
         let packageId = req.query.packageId;
-        let taskId = req.query.taskId;
+        let offerId = req.query.offerId;
         let mode = req.query.mode;
 
         // create a request object and add it to the queue
         let reqObject = {}
-        reqObject.taskId = taskId;
+        reqObject.offerId = offerId;
         reqObject.packageId = packageId;
         reqObject.mode = mode;
 
@@ -97,7 +97,7 @@ app.get('/dispatch', function (req, res) {
 
         console.log("Current tasks queue:" + JSON.stringify(tasksQueue));
 
-        res.send({"state": "accept", "queueIndex": queueIndex});
+        res.send({"status": "accept", "queueIndex": queueIndex});
     }
 });
 
@@ -110,9 +110,11 @@ app.listen(config.nodejsPort, function () {
     // read last warehouse state from warehouse.json
     warehouse.readWarehouse();
 
+	console.log(JSON.stringify(warehouse));
+
     // create a test request object and add it to the queue
     // let reqObject = {}
-    // reqObject.taskId = 1;
+    // reqObject.offerId = 1;
     // reqObject.packageId = "abc";
     // reqObject.packageDock = "storageDock1";
     // reqObject.dockPosition = 4;
@@ -429,28 +431,28 @@ setInterval(async function () {
                     loadPromise.then(
                         (data) => {
                             console.log(data);
-                            console.log("load task " + task.taskId + " successfully finished, calling control app /dispatchFinished");
+                            console.log("load task " + task.offerId + " successfully finished, calling control app /dispatchFinished");
 
                             // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
                             let axiosPromise = axios.get("http://" + config.controlAppUrl + "/dispatchFinished", {
-                                params: {taskId: tasksQueue[0].taskId},
+                                params: {offerId: tasksQueue[0].offerId},
                             });
-                            //axiosPromise.then(
-                            //    (data) => {
-                            //        console.log(data);
+                            axiosPromise.then(
+                                (data) => {
+                                    console.log(data);
                                     console.log("/dispatchFinished successfully called, removing a task from the queue")
                                     tasksQueue.shift();
                                     console.log("tasks queue after load: " + JSON.stringify(tasksQueue));
                                     busy = false;
                                     // check if the receive buffer is too full and create a move task (or tasks)
                                     checkReceiveBuffer();
-                              //  },
-                              //  (error) => {
-                              //      console.log("error calling control app, task remains in the queue");
-                              //      console.log(error);
-                              //      busy = false;
-                              //  }
-                            //)
+                                },
+                                (error) => {
+                                    console.log("error calling control app, task remains in the queue");
+                                    console.log(error);
+                                    busy = false;
+                                }
+                            )
                         },
                         (error) => {
                             console.log("error while doing the LOAD task, task remains in the queue");
@@ -492,9 +494,9 @@ setInterval(async function () {
                         await unload("storageDock1", warehouse.queueStorageDock1.topIndex);
 
                         // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
-                        //await axios.get(config.controlAppUrl + "/dispatchFinished", {
-                        //    params: {taskId: tasksQueue[0].taskId}
-                        //});
+                        await axios.get(config.controlAppUrl + "/dispatchFinished", {
+                            params: {offerId: tasksQueue[0].offerId}
+                        });
 
 
                     } else if ((itemIndex = warehouse.queueStorageDock2.items.indexOf(task.packageId)) !== -1) {
@@ -519,9 +521,9 @@ setInterval(async function () {
                         await unload("storageDock2", warehouse.queueStorageDock2.topIndex);
 
                         // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
-                        //await axios.get(config.controlAppUrl + "/dispatchFinished", {
-                        //    params: {taskId: tasksQueue[0].taskId}
-                        //});
+                        await axios.get(config.controlAppUrl + "/dispatchFinished", {
+                            params: {offerId: tasksQueue[0].offerId}
+                        });
 
                     } else if (warehouse.queueStorageDock3.items.indexOf(task.packageId) !== -1) {
                         // package is in the storage dock D3
@@ -551,10 +553,10 @@ setInterval(async function () {
                         }
                         await unload("storageDock3", warehouse.queueStorageDock3.topIndex);
 
-                        // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
-                        //await axios.get(config.controlAppUrl + "/dispatchFinished", {
-                        //    params: {taskId: tasksQueue[0].taskId}
-                        //});
+                        //send HTTP GET to the robot cars control app /dispatchFinished API endpoint
+                        await axios.get(config.controlAppUrl + "/dispatchFinished", {
+                            params: {offerId: tasksQueue[0].offerId}
+                        });
 
                     } else if ((itemIndex = warehouse.queueStorageDock4.items.indexOf(task.packageId)) !== -1) {
                         // package is in the storage dock D4
@@ -578,9 +580,9 @@ setInterval(async function () {
                         await unload("storageDock4", warehouse.queueStorageDock4.topIndex);
 
                         // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
-                        //await axios.get(config.controlAppUrl + "/dispatchFinished", {
-                        //    params: {taskId: tasksQueue[0].taskId}
-                        //});
+                        await axios.get(config.controlAppUrl + "/dispatchFinished", {
+                            params: {offerId: tasksQueue[0].offerId}
+                        });
 
                     } else if ((itemIndex = warehouse.queueReceiveBuffer.items.indexOf(task.packageId)) !== -1) {
                         // package is in the receive buffer
@@ -605,9 +607,9 @@ setInterval(async function () {
                         await unload("receiveBuffer", warehouse.queueReceiveBuffer.topIndex);
 
                         // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
-                        //await axios.get(config.controlAppUrl + "/dispatchFinished", {
-                        //    params: {taskId: tasksQueue[0].taskId}
-                        //});
+                        await axios.get(config.controlAppUrl + "/dispatchFinished", {
+                            params: {offerId: tasksQueue[0].offerId}
+                        });
 
                     } else if ((itemIndex = warehouse.queueDispatchBuffer.items.indexOf(task.packageId)) !== -1) {
                         // package is in the dispatch buffer
@@ -633,9 +635,9 @@ setInterval(async function () {
                         await unload("dispatchBuffer", warehouse.queueDispatchBuffer.topIndex);
 
                         // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
-                        //await axios.get(config.controlAppUrl + "/dispatchFinished", {
-                        //    params: {taskId: tasksQueue[0].taskId}
-                        //});
+                        await axios.get(config.controlAppUrl + "/dispatchFinished", {
+                            params: {offerId: tasksQueue[0].offerId}
+                        });
 
                     } else {
                         console.log("error, the package is not in the warehouse")
@@ -714,7 +716,7 @@ function checkReceiveBuffer() {
         } else {
             // create a request object for package in position 3 (index === 2) and add it to the queue
             let reqObject = {}
-            reqObject.taskId = "internal-move";
+            reqObject.offerId = "internal-move";
             reqObject.packageId = warehouse.queueReceiveBuffer.items[i - 1];
             reqObject.packageDock = "receiveBuffer";
             reqObject.dockPosition = i - 1;
@@ -749,7 +751,7 @@ function checkDispatchBuffer() {
         } else {
             // create a request object for package in position 3 (index === 2) and add it to the queue
             let reqObject = {}
-            reqObject.taskId = "internal-move";
+            reqObject.offerId = "internal-move";
             reqObject.packageId = warehouse.queueDispatchBuffer.items[i - 1];
             reqObject.packageDock = "dispatchBuffer";
             reqObject.dockPosition = i - 1;

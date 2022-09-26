@@ -85,7 +85,7 @@ export class Warehouse {
 
     readWarehouse() {
         const warehouse = require("./warehouse.json");
-
+	//console.log(warehouse);
         if (warehouse.queueStorageDock1[0] !== undefined) {
             this.queueStorageDock1.enqueue(warehouse.queueStorageDock1[0]);
         }
