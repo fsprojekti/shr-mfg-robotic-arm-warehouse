@@ -1,6 +1,6 @@
 # Robot arm Warehouse
 
-This README file is meant for the warehouse app used in 2022 Summer School on IIoT and blockchain technology. For the warehouse app used for 2022 internship practical assignment for two French students see subfolder /FRA-internship-2022
+This README file is meant for the warehouse app used in 2022 Summer School on IIoT and blockchain technology. For the warehouse app used for 2022 internship practical assignment for two French students see subfolder /FRA-internship-2022.
 
 ## Layout
 Robot arm represents an arbitrary package manipulation device that can be configured to simulate different types of manufacturing and supply chain facilities. One of them is a warehouse facility that stores packages. The layout of the warehouse is presented in the figure:
@@ -21,11 +21,11 @@ This type of dock is used for storing packages
 
 ## Package management process
 
-Packages are moved by warehouse package management process via execution of tasks that are collected in the package management queue. 
+Packages are moved by warehouse package management process via execution of tasks that are collected in the tasks management queue. 
 
-### Package management queue
+### Task management queue
 
-Example of a package management queue is shown in the table:
+Example of a task management queue is shown in the table:
 
 | Order | Task   |
 |-------|--------|
@@ -34,7 +34,7 @@ Example of a package management queue is shown in the table:
 | ...   | ...    | 
 | n     | task n |
 
-Package management process ensures tasks are executed in the right order. Task execution process takes first task from the queue and starts the process of task execution. It waits for the task completion. After task completion, the task is removed from the queue and the next task in line is assigned for execution.
+Task management process ensures tasks are executed in the right order. Task execution process takes first task from the queue and starts the process of task execution. It waits for the task completion. After task completion, the task is removed from the queue and the next task in line is assigned for execution.
 
 ```mermaid
 graph  TD
@@ -42,44 +42,37 @@ A[Fetch first task]-->B[Begin execution]-->C{is task <br>completed?}
 C-->|YES|D[remove task from queue]-->A
 ```
 ### Tasks
-There are several types of tasks with specific functionalities.
-
-### Receive task
-
-Package is being received at a *receive dock* (this is where transport stops to unload) and is moved to a *receive buffer dock*. Task parameters are described in the table:
-|Name|Description|
-|---|---|
-|package|id of a package to be received by the warehouse|
-|receive dock|id of the dock where the transportation vehicle will wait for unloading of a package|
-|receive buffer dock|id of the dock where robotic arm will move a package when it is unloaded from the transportation vehicle
-
-
-
+There are several types of tasks with specific functionalities:
+* **load**: move a package from the receive dock (robot car) to the receive buffer
+* **unload**: move a package from one of the storage docks to the dispatch dock (robot car) 
+* **move**: interval move of the package if the buffers and storage docks reach its limit size
 
 ## Implementation
 
+### Program organization
+
+| file name      | description                                                                                                                                                                                     | comments                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+|----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| index.js       | app starting point, sets up a web server, maintains tasks queue, processes tasks                                                                                                                | object containing data on packages in the dock                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| warehouse.js   | Warehouse class constructor, functions to reset a warehouse, to save a warehouse state to a file, to print the warehouse state to the console and to read the last saved state of the warehouse |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| queuelifo.js   | constructors for queues for all docks (4 storage docks, receiver and dispatch buffer)                                                                                                           |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| robotmotion.js | functions for                                                                                                                                                                                   | goReset(): move above the reset location<br/>goStorageD1(): move above the storage dock 1 location<br/>goStorageD2(): move above the storage dock 2 location<br/>goStorageD3(): move above the storage dock 3 location<br/>goStorageD1(): move above the storage dock 4 location<br/>goStorageD4(): move above the storage dock 1 location<br/> goReceiveBuffer(): move above the receive buffer location<br/>goDispatchBuffer(): move above the dispatch buffer location <br/>goReceiveDock(): move above the receive dock location<br/>goDispatchDock(): move above the dispatch dock location<br/>suctionON(): move down to the actual location of the package, turn the suction on and move back up<br/> suctionOFF(): move down to the actual location of the package, turn the suction off and move back up<br/> |
+| warehouse.json | JavaScript object with current state of the warehouse                                                                                                                                           | the state is stored to this file after any function in robotmotion.js finishes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| config.json    | configuration data for the app                                                                                                                                                                  |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+
 ### Properties
 
-| name                         | type                                                      | description                           | units |
-|------------------------------|-----------------------------------------------------------|---------------------------------------|-------|
-| operationalArea              | struct                                                    | operating area of the robot           |       |
-| operationalArea.width        | number                                                    | width of the operating area           | mm    |
-| operationalArea.length       | number                                                    | length of the operating area          | mm    |
-| operationalArea.widthOffset  | number                                                    | offset width of the operating area    | mm    |
-| operationalArea.lengthOffset | number                                                    | offset length the operating area      | mm    |
-| docks                        | array(dock)                                               | list of docking areas                 |       |
-| dock                         | struct                                                    | docking area structure                |       |
-| dock.id                      | id                                                        | id of a dock                          |       |
-| dock.width                   | number                                                    | width of the docking area             | mm    |
-| dock.length                  | number                                                    | height of the docking area            | mm    |
-| dock.widthOffset             | number                                                    | with offset center point of dock      | mm    |
-| dock.lengthOffset            | number                                                    | length offset center point of dock    | mm    |
-| dock.maxPackage              | number                                                    | maximum number of packages            | count |
-| dock.type                    | RECEIVE, RECEIVE_BUFFER, STORE, DISPATCH_BUFFER, DISPATCH | definition of dock type               |       |
-| dock.loadingHeight           | loading height of transportation vehicle                  |                                       |       |
-| package                      | struct                                                    | package physical properties structure |       |
-| package.radio                | number                                                    | radio of the package                  | mm    |
-| package.height               | number                                                    | height of the package                 | mm    |
+| name                | type              | description                                                                |
+|---------------------|-------------------|----------------------------------------------------------------------------|
+| queueStorageDock1   | JavaScript object | object containing data on packages in the dock                             |
+| queueStorageDock2   | =                 | =                                                                          |
+| queueStorageDock3   | =                 | =                                                                          |
+| queueStorageDock4   | =                 | =                                                                          |
+| queueReceiveBuffer  | =                 | =                                                                          |
+| queueDispatchBuffer | =                 | =                                                                          |
+| queueXXX.items      | array             | array of packageIds, from the bottom to the top of the dock                |
+| queueXXX.maxLength  | int               | maximum number of packages in the dock, defined in configuration           |
+| queueXXX.topIndex   | int               | index of the package currently at the top of the dock; -1 if dock is empty |
 
 ### Variables
 | name         | type                          | description                                     | units |
