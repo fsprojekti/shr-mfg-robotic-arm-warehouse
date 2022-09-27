@@ -27,12 +27,12 @@ Packages are moved by warehouse package management process via execution of task
 
 Example of a task management queue is shown in the table:
 
-| Order | Task   |
-|-------|--------|
-| 1     | task 1 |
-| 2     | task 2 |
-| ...   | ...    | 
-| n     | task n |
+| Order | Task                                                 |
+|-------|------------------------------------------------------|
+| 1     | {"mode": "load", "offerId": 11, "packageId": "abc}   |
+| 2     | {"mode": "move", "offerId": 37, "packageId": "bbb}   |
+| ...   | ...                                                  | 
+| n     | {"mode": "unload", "offerId": 54, "packageId": "klm} |
 
 Task management process ensures tasks are executed in the right order. Task execution process takes first task from the queue and starts the process of task execution. It waits for the task completion. After task completion, the task is removed from the queue and the next task in line is assigned for execution.
 
