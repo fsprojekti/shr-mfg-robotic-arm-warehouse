@@ -92,16 +92,18 @@ There are several types of tasks with specific functionalities:
 	* relocations (from receiveBuffer or any of the storage docks) are made to the least occupied location
 	* unload tasks are made directly to the dispatch dock (robot car) bypassing the dispatch buffer
 	* move speeds (when calling the /move command) and move durations (when calling the /moveTo command) are calculated adaptively based on the start and finish location
-	* setTimeout times used when calling the robotic arm commands are determined based on the start and finish locations to prevent too fast or too slow movements
+	* setTimeout times used when calling the robotic arm commands are determined based on the start and finish locations to prevent too fast or too slow movements --> these times are currently hardcoded --> **TODO: parametrization**
+	* robotic arm currently does not use the camera to recognize the package (by using the AprilTags) and position exactly above the center of the package; **this is planned for the future in the separate project**: https://github.com/fsprojekti/shr-mfg-robotic-arm-visual-detection
+	* a vast majority of the app parameters are read from config.json file
 
 ### State of the robotic arms after 2022 Summer School on IIoT and blockchain
 * operating system is burned to an SD card
 * only use OS image received by the robotic arm manufacturer which is adapted to the specific version of the robotic arm
 * by default, after the OS boots the HiWonder toolbox process sets up a WiFi hotspot to enable connections from other computers
 	* to connect the robotic arm to other WiFi networks, change the following file:
-		* filename: TODO
-		* uncomment the line: TODO
-		* uncomment the lines TODO and TODO and set the WiFi network SSID and password
+		* filename: **TODO**
+		* uncomment the line: **TODO**
+		* uncomment the lines **TODO** and **TODO** and set the WiFi network SSID and password
 * tested and working robotic arms: 13001, 13002, 13003
 * robotic arms currenlty not working: 13004, 13005 --> check WiFi connectivity
-* 1 robotic arms is currently not in used due to damage to one of the servos
+* 1 robotic arms is currently not in use due to a damaged servo
