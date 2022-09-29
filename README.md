@@ -45,7 +45,7 @@ C-->|YES|D[remove task from queue]-->A
 There are several types of tasks with specific functionalities:
 * **load**: moves a package from the receive dock (robot car) to the receive buffer
 * **unload**: moves a package from one of the storage docks to the dispatch dock (robot car) 
-* **move**: internally moves a package if the buffers or storage docks reach its limit capacity
+* **move**: internally moves a package if the buffers or storage docks reach its limit occupancy
 
 ## Implementation
 
@@ -82,3 +82,26 @@ There are several types of tasks with specific functionalities:
 | <code>/warehouse</code>     | /                              					           | get current state of the warehouse (array of packages in all docks) | warehouse object in JSON string format |
 | <code>/dispatch</code>      | {"packageId": id, "offerId": id, "mode": load} | called by a controll app to request a dispatch (load/unload)        | {status: accept/reject} 				           |
 
+### State of the application after 2022 Summer School on IIoT and blockchain
+* app is working with the following specifics:
+	* receiveDock and dispatchDocks are the same thing --> the dock on the robot car
+	* both receiveDock and dispatchDock sizes are currently set to 1
+	* receiveBuffer, dispatchBuffer and storage docks sizes are set to 2
+	* dispatchBuffer is currently not used in the app
+	* the limit of receiveBuffer occupation before internal process starts relocating packages is 2
+	* relocations (from receiveBuffer or any of the storage docks) are made to the least occupied location
+	* unload tasks are made directly to the dispatch dock (robot car) bypassing the dispatch buffer
+	* move speeds (when calling the /move command) and move durations (when calling the /moveTo command) are calculated adaptively based on the start and finish location
+	* setTimeout times used when calling the robotic arm commands are determined based on the start and finish locations to prevent too fast or too slow movements
+
+### State of the robotic arms after 2022 Summer School on IIoT and blockchain
+* operating system is burned to an SD card
+* only use OS image received by the robotic arm manufacturer which is adapted to the specific version of the robotic arm
+* by default, after the OS boots the HiWonder toolbox process sets up a WiFi hotspot to enable connections from other computers
+	* to connect the robotic arm to other WiFi networks, change the following file:
+		* filename: TODO
+		* uncomment the line: TODO
+		* uncomment the lines TODO and TODO and set the WiFi network SSID and password
+* tested and working robotic arms: 13001, 13002, 13003
+* robotic arms currenlty not working: 13004, 13005 --> check WiFi connectivity
+* 1 robotic arms is currently not in used due to damage to one of the servos
