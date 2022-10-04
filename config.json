@@ -10,7 +10,7 @@
   "storageD4Location": {"x":  184, "y": 80, "z": 215},
   "receiveBufferLocation": {"x": -184, "y": -45, "z": 215},
   "receiveDockLocation": {"x":  0, "y": -155, "z": 215},
-  "dispatchBufferLocation": {"x":  184, "y": -40, "z": 215},
+  "dispatchBufferLocation": {"x":  184, "y": -45, "z": 215},
   "dispatchDockLocation": {"x":  0, "y": -155, "z": 215},
   "moveDownZ": [-131,-123,-114,-104],
   "moveUpZ": [131,123,114,104],
