@@ -1,5 +1,5 @@
 {
-  "roboticArmIpAddress": "192.168.0.104:3000",
+  "roboticArmIpAddress": "localhost:3000",
   "nodejsPort": 3001,
   "controlAppUrl": "http://192.168.0.100:3000",
   "dockSize": 4,
@@ -14,6 +14,7 @@
   "dispatchDockLocation": {"x":  0, "y": -155, "z": 215},
   "moveDownZ": [-131,-123,-114,-104],
   "moveUpZ": [131,123,114,104],
+  "moveDownTagDetectionHeight": 30,
   "moveDownZCar": -78,
   "moveUpZCar": 78,
   "goGrabZ": -17,

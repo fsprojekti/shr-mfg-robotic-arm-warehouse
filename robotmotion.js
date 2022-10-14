@@ -26,8 +26,8 @@ async function goReset(duration) {
     else
         setTimeoutTime = 1500;
 
-	
-	console.log("goReset timeout time: " + setTimeoutTime);
+
+    console.log("goReset timeout time: " + setTimeoutTime);
 
     try {
         let X = config.resetLocation.x;
@@ -69,7 +69,7 @@ async function goStorageD1(duration) {
     else
         setTimeoutTime = 2000;
 
-	console.log("goStorageD1 timeout time: " + setTimeoutTime);
+    console.log("goStorageD1 timeout time: " + setTimeoutTime);
 
     try {
         let X = config.storageD1Location.x;
@@ -112,7 +112,7 @@ async function goStorageD2(duration) {
     else
         setTimeoutTime = 2000;
 
-	console.log("goStorageD2 timeout time: " + setTimeoutTime);
+    console.log("goStorageD2 timeout time: " + setTimeoutTime);
 
     try {
         let X = config.storageD2Location.x;
@@ -155,7 +155,7 @@ async function goStorageD3(duration) {
     else
         setTimeoutTime = 2000;
 
-	console.log("goStorageD3 timeout time: " + setTimeoutTime);
+    console.log("goStorageD3 timeout time: " + setTimeoutTime);
 
     try {
         let X = config.storageD3Location.x;
@@ -198,7 +198,7 @@ async function goStorageD4(duration) {
     else
         setTimeoutTime = 2000;
 
-	console.log("goStorageD4 timeout time: " + setTimeoutTime);
+    console.log("goStorageD4 timeout time: " + setTimeoutTime);
 
     try {
         let X = config.storageD4Location.x;
@@ -236,7 +236,7 @@ async function goReceiveBuffer(duration) {
     else
         setTimeoutTime = 1500;
 
-	console.log("goReceiveBuffer timeout time: " + setTimeoutTime);
+    console.log("goReceiveBuffer timeout time: " + setTimeoutTime);
 
 
     try {
@@ -282,7 +282,7 @@ async function goDispatchBuffer(duration) {
     else
         setTimeoutTime = 2000;
 
-	console.log("goDispatchBuffer timeout time: " + setTimeoutTime);
+    console.log("goDispatchBuffer timeout time: " + setTimeoutTime);
 
 
     try {
@@ -321,7 +321,7 @@ async function goReceiveDock(duration) {
     else
         setTimeoutTime = 1000;
 
-	console.log("goReceiveDock timeout time: " + setTimeoutTime);
+    console.log("goReceiveDock timeout time: " + setTimeoutTime);
 
     try {
         let X = config.receiveDockLocation.x; //TODO: check
@@ -367,7 +367,7 @@ async function goDispatchDock(duration) {
     else
         setTimeoutTime = 1500;
 
-	console.log("goDispatchDock timeout time: " + setTimeoutTime);
+    console.log("goDispatchDock timeout time: " + setTimeoutTime);
 
     try {
         let X = config.dispatchDockLocation.x; //TODO
@@ -401,8 +401,9 @@ async function suctionON(packageIndex) {
 
     try {
         console.log("doing goDown()");
-	console.log("location index:" + packageIndex);
-        await goDown(packageIndex);
+        console.log("location index:" + packageIndex);
+        //await goDown(packageIndex);
+        await goDownTagDetection(packageIndex);
         console.log("doing goGrab()");
         await goGrab();
         await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
@@ -496,6 +497,44 @@ async function goDown(packageIndex) {
     }
 }
 
+//GO DOWN TO A TAG DETECTION HEIGHT
+async function goDownTagDetection(packageIndex) {
+
+    try {
+        if (packageIndex === 0) {
+            await moveDown(0);
+        } else if (packageIndex === 1) {
+            await moveDown(1);
+        } else if (packageIndex === 2) {
+            await moveDown(2);
+        } else if (packageIndex === 3) {
+            await moveDown(3);
+        } else if (packageIndex === 5) {
+            await moveDown(5);
+        } else {
+            console.log("goDown: incorrect package index: " + packageIndex);
+            throw new Error("goDown: incorrect package index: " + packageIndex);
+        }
+
+        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/move", {
+            params: {msg: {x: 0, y: 0, z: config.goGrabZ, duration: config.moveDurationDefault}},
+        });
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve("resolved");
+            }, 1000);
+        });
+    } catch (error) {
+        console.log("goGrab() error");
+        console.log(error);
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                reject(error);
+            }, 1000);
+        });
+    }
+}
+
 // MOVE DOWN
 async function moveDown(index) {
 
@@ -506,6 +545,10 @@ async function moveDown(index) {
         z = config.moveDownZCar;
     else
         z = config.moveDownZ[index];
+
+    // the robotic arm doesn't move all the way down to the package; it stops a bit higher where a tag detection
+    // and object centering is performed
+    z = z + config.moveDownTagDetectionHeight;
 
     // duration of the move is dependent on the end position index
     // this is crucial to prevent fast movements
@@ -559,9 +602,7 @@ async function goUp(packageIndex) {
         console.log("goUp() error");
         console.log(error);
         return new Promise((resolve, reject) => {
-
             reject(error);
-
         });
     }
 }
@@ -605,7 +646,7 @@ async function goGrab() {
 
     try {
         await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/move", {
-            params: {msg: {x: 0, y: 0, z: config.goGrabZ, duration: config.moveDurationDefault}},
+            params: {msg: {x: 0, y: 0, z: config.goGrabZ + config.moveDownTagDetectionHeight, duration: config.moveDurationDefault}},
         });
         return new Promise((resolve) => {
             setTimeout(() => {
