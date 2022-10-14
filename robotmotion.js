@@ -643,7 +643,7 @@ async function goGrab() {
 
     try {
         await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/move", {
-            params: {msg: {x: 0, y: 0, z: (config.goGrabZ + config.moveDownTagDetectionHeight), duration: config.moveDurationDefault}},
+            params: {msg: {x: 0, y: 0, z: (config.goGrabZ - config.moveDownTagDetectionHeight), duration: config.moveDurationDefault}},
         });
         return new Promise((resolve) => {
             setTimeout(() => {
