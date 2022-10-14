@@ -397,13 +397,19 @@ async function goDispatchDock(duration) {
 }
 
 //SUCTION ON
-async function suctionON(packageIndex) {
+async function suctionON(packageIndex, locationX, locationY, locationZ) {
 
     try {
         console.log("doing goDown()");
         console.log("location index:" + packageIndex);
         //await goDown(packageIndex);
         await goDownTagDetection(packageIndex);
+        // TODO: call /objectCenter API
+        let objectCenterData = await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/objectCenter", {
+            params: {msg: {x: locationX, y: locationY, z: locationZ}},
+        });
+        console.log("Object center data: " + objectCenterData);
+
         console.log("doing goGrab()");
         await goGrab();
         await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
@@ -432,7 +438,7 @@ async function suctionON(packageIndex) {
 }
 
 //SUCTION OFF
-async function suctionOFF(packageIndex) {
+async function suctionOFF(packageIndex, locationX, locationY, locationZ) {
 
     try {
         console.log("doing goDown()");

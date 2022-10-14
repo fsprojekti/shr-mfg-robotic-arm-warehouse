@@ -173,10 +173,10 @@ async function load(packageId, receiveBufferIndex) {
         await goReset(calculateMoveToDuration("", "reset"));
         await goReceiveDock(calculateMoveToDuration("reset", "receiveDock"));
         // "packageIndex" for suctionOn() function is 0, because the first move is to the receive dock = robot car
-        await suctionON(5);
+        await suctionON(5, config.receiveDockLocation.x, config.receiveDockLocation.y, config.receiveDockLocation.z);
         // packageIndex is the topIndex+1 of the receiveBuffer
         await goReceiveBuffer(calculateMoveToDuration("receiveDock", "receiveBuffer"));
-        await suctionOFF(receiveBufferIndex);
+        await suctionOFF(receiveBufferIndex, config.receiveBufferLocation.x, config.receiveBufferLocation.y, config.receiveBufferLocation.z);
         // move the package to the receive buffer queue
         warehouse.queueReceiveBuffer.enqueue(packageId);
 
