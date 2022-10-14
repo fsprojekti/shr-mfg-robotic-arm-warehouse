@@ -516,9 +516,6 @@ async function goDownTagDetection(packageIndex) {
             throw new Error("goDown: incorrect package index: " + packageIndex);
         }
 
-        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/move", {
-            params: {msg: {x: 0, y: 0, z: config.goGrabZ, duration: config.moveDurationDefault}},
-        });
         return new Promise((resolve) => {
             setTimeout(() => {
                 resolve("resolved");
@@ -646,7 +643,7 @@ async function goGrab() {
 
     try {
         await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/move", {
-            params: {msg: {x: 0, y: 0, z: config.goGrabZ + config.moveDownTagDetectionHeight, duration: config.moveDurationDefault}},
+            params: {msg: {x: 0, y: 0, z: (config.goGrabZ + config.moveDownTagDetectionHeight), duration: config.moveDurationDefault}},
         });
         return new Promise((resolve) => {
             setTimeout(() => {
