@@ -101,6 +101,6 @@ There are several types of tasks with specific functionalities:
 		* filename: /home/hiwonder/hiwonder_wifi_conf.py
 		* uncomment the line: **HW_WIFI_MODE** and set it to **2**
 		* uncomment the lines **HW_WIFI_STA_SSID** and **HW_WIFI_STA_PASWWORD** and set the WiFi network SSID and password
+* all robotic arms' servos have been checked and replaced if malfunctioning
 * tested and working robotic arms: 13001, 13002, 13003 **CHECK**
-* robotic arms currenlty not working: 13004, 13005 --> check WiFi connectivity
-* 1 robotic arms is currently not in use due to a damaged servo
+* robotic arms currenlty not working: 13004, 13005 --> check WiFi connectivity and/or OS installation
