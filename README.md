@@ -93,6 +93,14 @@ There are several types of tasks with specific functionalities:
 	* At this time, the robotic arm does not employ camera recognition to identify packages using AprilTags and accurately position above the center of the package. This feature is planned for future implementation in a separate project, found at: https://github.com/fsprojekti/shr-mfg-robotic-arm-visual-detection
 	* Most of the application parameters are derived from the config.json file.
 
+### TODO list for the robotic arms for 2023 Summer School on IIoT and blockchain
+* implement visual detection and correction of the packages using AprilTags: integrate solution from Wei Wang: https://github.com/fsprojekti/shr-mfg-robotic-arm-visual
+* reconfigure internal package movements/relocations:
+	* use dispatchBuffer?
+	* how big should the receiveBuffer and dispatchBuffer be?
+	* where to put the the package: to the least occupied dock or should a more advanced logic be used?
+	* how to relocate packages that are above the currently processed package? what kind of logic should be used?
+
 ### State of the robotic arms after 2022 Summer School on IIoT and blockchain
 * operating system is burned to an SD card
 * only use OS image received by the robotic arm manufacturer which is adapted to the specific version of the robotic arm
