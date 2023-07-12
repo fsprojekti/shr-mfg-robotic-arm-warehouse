@@ -5,32 +5,32 @@ const fs = require("fs");
 
 //QUEUES
 import {
-    QueueA,
-    QueueB,
-    QueueC,
-    QueueD,
-    QueueE,
-    QueueF,
-    QueueG,
-    QueueH,
+    QueueStorageDock1,
+    QueueStorageDock2,
+    QueueStorageDock3,
+    QueueStorageDock4,
+    QueueReceiveDock,
+    QueueReceiveBuffer,
+    QueueDispatchBuffer,
+    QueueDispatchDock,
     // QueueRobot,
-} from "./queuelifo.js";
+} from "./queue.js";
 
 export class Warehouse {
 
     constructor() {
         this.location = "reset";
-        this.queueStorageDock1 = new QueueA();
-        this.queueStorageDock2 = new QueueB();
-        this.queueReceiveBuffer = new QueueC();
-        this.queueReceiveDock = new QueueD();
-        this.queueStorageDock4 = new QueueE();
-        this.queueStorageDock3 = new QueueF();
-        this.queueDispatchBuffer = new QueueG();
-        this.queueDispatchDock = new QueueH();
+        this.queueStorageDock1 = new QueueStorageDock1();
+        this.queueStorageDock2 = new QueueStorageDock2();
+        this.queueReceiveBuffer = new QueueReceiveBuffer();
+        this.queueReceiveDock = new QueueReceiveDock();
+        this.queueStorageDock4 = new QueueStorageDock4();
+        this.queueStorageDock3 = new QueueStorageDock3();
+        this.queueDispatchBuffer = new QueueDispatchBuffer();
+        this.queueDispatchDock = new QueueDispatchDock();
     }
 
-
+    // print the current state of the warehouse to the console
     stateWarehouse() {
         if (this.queueStorageDock1.topIndex !== 0) {
             console.log(this.queueStorageDock1);
@@ -55,6 +55,7 @@ export class Warehouse {
         // }
     }
 
+    // reset the warehouse to an empty state
     resetWarehouse() {
         // queueRobot.dequeue();
         this.queueStorageDock1.dequeue();
@@ -83,8 +84,9 @@ export class Warehouse {
         this.queueReceiveBuffer.dequeue();
     }
 
+    // read last warehouse state from warehouse.json file
     readWarehouse() {
-        const warehouse = require("./warehouse.json");
+        const warehouse = require("./data/warehouse.json");
 	//console.log(warehouse);
         if (warehouse.queueStorageDock1[0] !== undefined) {
             this.queueStorageDock1.enqueue(warehouse.queueStorageDock1[0]);
@@ -172,6 +174,7 @@ export class Warehouse {
         console.log("warehouse read: " + JSON.stringify(warehouseObj));
     }
 
+    // save current state of the warehouse to the warehouse.json file
     saveWarehouse() {
 
         let saveDataObject = {};
