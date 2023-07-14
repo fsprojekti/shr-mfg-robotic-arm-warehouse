@@ -400,10 +400,10 @@ async function suctionON(packageIndex, locationX, locationY, locationZ) {
         //await goDown(packageIndex);
         await goDownTagDetection(packageIndex);
         // TODO: call /objectCenter API
-        let objectCenterData = await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/objectCenter", {
-            params: {msg: {x: locationX, y: locationY, z: locationZ}},
-        });
-        console.log("Object center data: " + objectCenterData);
+        // let objectCenterData = await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/objectCenter", {
+        //     params: {msg: {x: locationX, y: locationY, z: locationZ}},
+        // });
+        // console.log("Object center data: " + objectCenterData);
 
         console.log("doing goGrab()");
         await goGrab();

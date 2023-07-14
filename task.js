@@ -1,5 +1,9 @@
-const config = require("./config/config.json");
-const {
+import {createRequire} from "module";
+// define require because this app is now defined as a "module" type
+const require = createRequire(import.meta.url);
+
+const config = require('./config/config.json');
+import {
     goReset,
     goReceiveDock,
     suctionON,
@@ -11,10 +15,11 @@ const {
     goStorageDock4,
     goDispatchBuffer,
     goDispatchDock
-} = require("./motion.js");
-const {Promise} = require("es6-promise");
-const {warehouse} = require("./index.js");
-const {default: axios} = require("axios");
+}  from "./motion.js";
+import pkg from "es6-promise";
+const {Promise} = pkg
+import {warehouse} from "./index.js";
+import axios from "axios";
 
 import {tasksQueue, busy} from "./index.js";
 
@@ -363,7 +368,6 @@ async function processTask(task) {
                 await axios.get(config.controlAppUrl + "/dispatchFinished", {
                     params: {offerId: tasksQueue[0].offerId}
                 });
-
 
             } else if ((itemIndex = warehouse.queueStorageDock2.items.indexOf(task.packageId)) !== -1) {
                 // package is in the storage dock D2

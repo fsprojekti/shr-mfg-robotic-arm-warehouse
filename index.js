@@ -2,12 +2,10 @@ import {createRequire} from "module";
 // define require because this app is now defined as a "module" type
 const require = createRequire(import.meta.url);
 
-const express = require('express');
+import express from 'express';
 const app = express();
-const axios = require('axios').default;
 
-// open file with configuration data
-const config = require("./config/config.json");
+const config = require('./config/config.json');
 
 import {Warehouse} from "./warehouse.js";
 
