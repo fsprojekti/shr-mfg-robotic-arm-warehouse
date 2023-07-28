@@ -32,6 +32,8 @@ export class Warehouse {
 
     // print the current state of the warehouse to the console
     stateWarehouse() {
+
+        console.log("printing warehouse state: ");
         if (this.queueStorageDock1.topIndex !== 0) {
             console.log(this.queueStorageDock1);
         }
@@ -50,9 +52,7 @@ export class Warehouse {
         if (this.queueDispatchBuffer.topIndex !== 0) {
             console.log(this.queueDispatchBuffer);
         }
-        // if (queueRobot.topIndex !== 0) {
-        //     console.log(queueRobot);
-        // }
+        // console.log(this);
     }
 
     // reset the warehouse to an empty state
@@ -177,6 +177,8 @@ export class Warehouse {
     // save current state of the warehouse to the warehouse.json file
     saveWarehouse() {
 
+        console.log("saving data to file: ");
+
         let saveDataObject = {};
         saveDataObject.queueStorageDock1 = [];
         saveDataObject.queueStorageDock2 = [];
@@ -239,9 +241,12 @@ export class Warehouse {
         if (this.queueDispatchBuffer.items[3] !== undefined)
             saveDataObject.queueDispatchBuffer[3] = this.queueDispatchBuffer.items[3];
 
-        fs.writeFile("warehouse.json", JSON.stringify(saveDataObject), function (erreur) {
-            if (erreur) {
-                console.log(erreur);
+        console.log(JSON.stringify(saveDataObject));
+
+        fs.writeFile("./data/warehouse.json", JSON.stringify(saveDataObject), function (err) {
+            console.log(JSON.stringify(saveDataObject));
+            if (err) {
+                console.log(err);
             }
         });
     }

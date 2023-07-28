@@ -1,6 +1,7 @@
 import {createRequire} from "module";
 // define require because this app is now defined as a "module" type
 const require = createRequire(import.meta.url);
+import axios from "axios";
 
 const config = require('./config/config.json');
 import {
@@ -15,14 +16,15 @@ import {
     goStorageDock4,
     goDispatchBuffer,
     goDispatchDock
-}  from "./motion.js";
+} from "./motion.js";
 import pkg from "es6-promise";
+
 const {Promise} = pkg
-import {warehouse} from "./index.js";
-import axios from "axios";
+import {warehouse, tasksQueue, setBusy} from "./index.js";
 
-import {tasksQueue, busy} from "./index.js";
 
+// add timestamps in front of all log messages
+require('console-stamp')(console, '[HH:MM:ss.l]');
 
 async function calculateMoveToDuration(startLocation, endLocation) {
     let duration = config.moveToDurationDefault;
@@ -65,12 +67,15 @@ async function load(packageId, receiveBufferIndex) {
         await goReset(calculateMoveToDuration("", "reset"));
         await goReceiveDock(calculateMoveToDuration("reset", "receiveDock"));
         // "packageIndex" for suctionOn() function is 0, because the first move is to the receive dock = robot car
-        await suctionON(5, config.receiveDockLocation.x, config.receiveDockLocation.y, config.receiveDockLocation.z);
+        await suctionON(5, config.receiveDockLocation.x, config.receiveDockLocation.y, config.receiveDockLocation.z, true);
         // packageIndex is the topIndex+1 of the receiveBuffer
         await goReceiveBuffer(calculateMoveToDuration("receiveDock", "receiveBuffer"));
         await suctionOFF(receiveBufferIndex, config.receiveBufferLocation.x, config.receiveBufferLocation.y, config.receiveBufferLocation.z);
+
         // move the package to the receive buffer queue
         warehouse.queueReceiveBuffer.enqueue(packageId);
+        await warehouse.stateWarehouse();
+        await warehouse.saveWarehouse();
 
         await goReset(calculateMoveToDuration("", "reset"));
 
@@ -90,22 +95,43 @@ async function unload(startLocation, packageIndex) {
 
     console.log("starting an unload from: (" + startLocation + ", " + packageIndex + ")");
 
+    let suctionONx, suctionONy, suctionONz;
+
     try {
         await goReset(calculateMoveToDuration("", "reset"));
-        if (startLocation === "storageDock1")
+        if (startLocation === "storageDock1") {
             await goStorageDock1(calculateMoveToDuration("reset", startLocation));
-        else if (startLocation === "storageDock2")
+            suctionONx = config.storageDock1Location.x;
+            suctionONy = config.storageDock1Location.y;
+            suctionONz = config.storageDock1Location.z;
+        } else if (startLocation === "storageDock2") {
             await goStorageDock2(calculateMoveToDuration("reset", startLocation));
-        else if (startLocation === "storageDock3")
+            suctionONx = config.storageDock2Location.x;
+            suctionONy = config.storageDock2Location.y;
+            suctionONz = config.storageDock2Location.z;
+        } else if (startLocation === "storageDock3") {
             await goStorageDock3(calculateMoveToDuration("reset", startLocation));
-        else if (startLocation === "storageDock4")
+            suctionONx = config.storageDock3Location.x;
+            suctionONy = config.storageDock3Location.y;
+            suctionONz = config.storageDock3Location.z;
+        } else if (startLocation === "storageDock4") {
             await goStorageDock4(calculateMoveToDuration("reset", startLocation));
-        else if (startLocation === "receiveBuffer")
+            suctionONx = config.storageDock4Location.x;
+            suctionONy = config.storageDock4Location.y;
+            suctionONz = config.storageDock4Location.z;
+        } else if (startLocation === "receiveBuffer") {
             await goReceiveBuffer(calculateMoveToDuration("reset", startLocation));
-        else if (startLocation === "dispatchBuffer")
+            suctionONx = config.receiveBufferLocation.x;
+            suctionONy = config.receiveBufferLocation.y;
+            suctionONz = config.receiveBufferLocation.z;
+        } else if (startLocation === "dispatchBuffer") {
             await goDispatchBuffer(calculateMoveToDuration("reset", startLocation));
+            suctionONx = config.dispatchBufferLocation.x;
+            suctionONy = config.dispatchBufferLocation.y;
+            suctionONz = config.dispatchBufferLocation.z;
+        }
 
-        await suctionON(packageIndex);
+        await suctionON(packageIndex, suctionONx, suctionONy, suctionONz);
         // remove the package from the start location
         if (startLocation === "storageDock1")
             warehouse.queueStorageDock1.dequeue();
@@ -120,15 +146,19 @@ async function unload(startLocation, packageIndex) {
         else if (startLocation === "dispatchBuffer")
             warehouse.queueDispatchBuffer.dequeue();
 
+        await warehouse.stateWarehouse();
+        await warehouse.saveWarehouse();
+
         await goDispatchDock(calculateMoveToDuration(startLocation, "dispatchDock"));
-        // "packageIndex" of suctionOFF() is 0, because the end location is dispatch dock = robot car
-        await suctionOFF(5);
+        // "packageIndex" of suctionOFF() is 5, because the end location is dispatch dock = robot car
+        await suctionOFF(5, config.dispatchDockLocation.x, config.dispatchDockLocation.y, config.dispatchDockLocation.z);
         await goReset(calculateMoveToDuration("dispatchDock", "reset"));
 
         return new Promise((resolve) => {
             resolve("done");
         });
-    } catch (error) {
+    } catch
+        (error) {
         console.log("error executing the unload task");
         return new Promise((resolve, reject) => {
             reject(error);
@@ -142,9 +172,11 @@ async function move(startLocation, packageIndex) {
 
     console.log("starting a move from: (" + startLocation + ", " + packageIndex + ")");
 
-    let newLocation = await findNewLocation(startLocation);
+    let suctionONx, suctionONy, suctionONz;
+    let suctionOFFx, suctionOFFy, suctionOFFz;
 
-    //	console.log(JSON.stringify(warehouse.queueReceiveBuffer));
+    let newLocation = await findNewLocation(startLocation);
+    console.log("selected new location: " + newLocation);
 
     let packageId;
     if (startLocation === "storageDock1") {
@@ -162,10 +194,7 @@ async function move(startLocation, packageIndex) {
     } else
         console.log("move() error: undefined start location");
 
-
     let durationMove1 = calculateMoveToDuration("reset", startLocation);
-
-    console.log("selected new location: " + newLocation);
 
     try {
 
@@ -175,26 +204,45 @@ async function move(startLocation, packageIndex) {
         if (startLocation === "storageDock1") {
             console.log("doing goStorageDock1()");
             await goStorageDock1(durationMove1);
+            suctionONx = config.storageDock1Location.x;
+            suctionONy = config.storageDock1Location.y;
+            suctionONz = config.storageDock1Location.z;
         } else if (startLocation === "storageDock2") {
             console.log("doing goStorageDock2()");
             await goStorageDock2(durationMove1);
+            suctionONx = config.storageDock2Location.x;
+            suctionONy = config.storageDock2Location.y;
+            suctionONz = config.storageDock2Location.z;
         } else if (startLocation === "storageDock3") {
             console.log("doing goStorageDock3()");
             await goStorageDock3(durationMove1);
+            suctionONx = config.storageDock3Location.x;
+            suctionONy = config.storageDock3Location.y;
+            suctionONz = config.storageDock3Location.z;
         } else if (startLocation === "storageDock4") {
             console.log("doing goStorageDock4()");
             await goStorageDock4(durationMove1);
+            suctionONx = config.storageDock4Location.x;
+            suctionONy = config.storageDock4Location.y;
+            suctionONz = config.storageDock4Location.z;
         } else if (startLocation === "receiveBuffer") {
             console.log("doing goReceiveBuffer()");
             await goReceiveBuffer(durationMove1);
+            suctionONx = config.receiveBufferLocation.x;
+            suctionONy = config.receiveBufferLocation.y;
+            suctionONz = config.receiveBufferLocation.z;
         } else if (startLocation === "dispatchBuffer") {
             console.log("doing goDispatchBuffer()");
             await goDispatchBuffer(durationMove1);
+            suctionONx = config.dispatchBufferLocation.x;
+            suctionONy = config.dispatchBufferLocation.y;
+            suctionONz = config.dispatchBufferLocation.z;
         }
 
         console.log("doing suctionON()");
         // packageIndex is the index of the package in the start location queue
-        await suctionON(packageIndex - 1);
+        await suctionON(packageIndex - 1, suctionONx, suctionONy, suctionONz);
+
         // remove the package from the start location queue
         if (startLocation === "storageDock1")
             warehouse.queueStorageDock1.dequeue();
@@ -208,6 +256,8 @@ async function move(startLocation, packageIndex) {
             warehouse.queueReceiveBuffer.dequeue();
         warehouse.queueDispatchBuffer.dequeue();
 
+        await warehouse.stateWarehouse();
+        await warehouse.saveWarehouse();
 
         let durationMove2 = calculateMoveToDuration(startLocation, newLocation);
 
@@ -217,40 +267,61 @@ async function move(startLocation, packageIndex) {
         if (newLocation === "storageDock1") {
             console.log("doing goStorageDock1()");
             await goStorageDock1(durationMove2);
+            suctionOFFx = config.storageDock1Location.x;
+            suctionOFFy = config.storageDock1Location.y;
+            suctionOFFz = config.storageDock1Location.z;
             console.log("doing suctionOFF()");
-            await suctionOFF(warehouse.queueStorageDock1.topIndex + 1);
+            await suctionOFF(warehouse.queueStorageDock1.topIndex + 1, suctionOFFx, suctionOFFy, suctionOFFz);
             warehouse.queueStorageDock1.enqueue(packageId);
         } else if (newLocation === "storageDock2") {
             console.log("doing goStorageDock2()");
             await goStorageDock2(durationMove2);
+            suctionOFFx = config.storageDock2Location.x;
+            suctionOFFy = config.storageDock2Location.y;
+            suctionOFFz = config.storageDock2Location.z;
             console.log("doing suctionOFF()");
-            await suctionOFF(warehouse.queueStorageDock2.topIndex + 1);
+            await suctionOFF(warehouse.queueStorageDock2.topIndex + 1, suctionOFFx, suctionOFFy, suctionOFFz);
             warehouse.queueStorageDock2.enqueue(packageId);
         } else if (newLocation === "storageDock3") {
             console.log("doing goStorageDock3()");
             await goStorageDock3(durationMove2);
+            suctionOFFx = config.storageDock3Location.x;
+            suctionOFFy = config.storageDock3Location.y;
+            suctionOFFz = config.storageDock3Location.z;
             console.log("doing suctionOFF()");
-            await suctionOFF(warehouse.queueStorageDock3.topIndex + 1);
+            await suctionOFF(warehouse.queueStorageDock3.topIndex + 1, suctionOFFx, suctionOFFy, suctionOFFz);
             warehouse.queueStorageDock3.enqueue(packageId);
         } else if (newLocation === "storageDock4") {
             console.log("doing goStorageDock4()");
             await goStorageDock4(durationMove2);
+            suctionOFFx = config.storageDock4Location.x;
+            suctionOFFy = config.storageDock4Location.y;
+            suctionOFFz = config.storageDock4Location.z;
             console.log("doing suctionOFF()");
-            await suctionOFF(warehouse.queueStorageDock4.topIndex + 1);
+            await suctionOFF(warehouse.queueStorageDock4.topIndex + 1, suctionOFFx, suctionOFFy, suctionOFFz);
             warehouse.queueStorageDock4.enqueue(packageId);
         } else if (newLocation === "receiveBuffer") {
             console.log("doing receiveBuffer()");
             await goReceiveBuffer(durationMove2)
+            suctionOFFx = config.receiveBufferLocation.x;
+            suctionOFFy = config.receiveBufferLocation.y;
+            suctionOFFz = config.receiveBufferLocation.z;
             console.log("doing suctionOFF()");
-            await suctionOFF(warehouse.queueReceiveBuffer.topIndex + 1);
+            await suctionOFF(warehouse.queueReceiveBuffer.topIndex + 1, suctionOFFx, suctionOFFy, suctionOFFz);
             warehouse.queueReceiveBuffer.enqueue(packageId);
         } else if (newLocation === "dispatchBuffer") {
             console.log("doing dispatchBuffer()");
             await goDispatchBuffer(durationMove2);
+            suctionOFFx = config.dispatchBufferLocation.x;
+            suctionOFFy = config.dispatchBufferLocation.y;
+            suctionOFFz = config.dispatchBufferLocation.z;
             console.log("doing suctionOFF()");
-            await suctionOFF(warehouse.queueDispatchBuffer.topIndex + 1);
+            await suctionOFF(warehouse.queueDispatchBuffer.topIndex + 1, suctionOFFx, suctionOFFy, suctionOFFz);
             warehouse.queueDispatchBuffer.enqueue(packageId);
         }
+
+        await warehouse.stateWarehouse();
+        await warehouse.saveWarehouse();
 
         console.log("doing goReset()");
         await goReset(calculateMoveToDuration(newLocation, "reset"));
@@ -304,26 +375,29 @@ async function processTask(task) {
                     console.log(data);
                     console.log("load task " + task.offerId + " successfully finished, calling control app /dispatchFinished");
 
+                    tasksQueue.shift();
+                    console.log("tasks queue after load: " + JSON.stringify(tasksQueue));
+                    setBusy(false);
                     // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
-                    let axiosPromise = axios.get("http://" + config.controlAppUrl + "/dispatchFinished", {
-                        params: {offerId: tasksQueue[0].offerId},
-                    });
-                    axiosPromise.then(
-                        (data) => {
-                            console.log(data);
-                            console.log("/dispatchFinished successfully called, removing a task from the queue")
-                            tasksQueue.shift();
-                            console.log("tasks queue after load: " + JSON.stringify(tasksQueue));
-                            busy = false;
-                            // check if the receive buffer is too full and create a move task (or tasks)
-                            checkReceiveBuffer();
-                        },
-                        (error) => {
-                            console.log("error calling control app, task remains in the queue");
-                            console.log(error);
-                            busy = false;
-                        }
-                    )
+                    // let axiosPromise = axios.get("http://" + config.controlAppUrl + "/dispatchFinished", {
+                    //     params: {offerId: tasksQueue[0].offerId},
+                    // });
+                    // axiosPromise.then(
+                    //     (data) => {
+                    //         console.log(data);
+                    //         console.log("/dispatchFinished successfully called, removing a task from the queue")
+                    //         tasksQueue.shift();
+                    //         console.log("tasks queue after load: " + JSON.stringify(tasksQueue));
+                    //         setBusy(false);
+                    //         // check if the receive buffer is too full and create a move task (or tasks)
+                    //         checkReceiveBuffer();
+                    //     },
+                    //     (error) => {
+                    //         console.log("error calling control app, task remains in the queue");
+                    //         console.log(error);
+                    //         setBusy(false);
+                    //     }
+                    // )
                 },
                 (error) => {
                     console.log("error while doing the LOAD task, task remains in the queue");
@@ -517,7 +591,7 @@ async function processTask(task) {
             // remove the task from the queue
             tasksQueue.shift();
             console.log("tasks queue after unload: " + JSON.stringify(tasksQueue));
-            busy = false;
+            setBusy(false);
 
         } catch (error) {
             console.log("error while doing the UNLOAD task, task remains in the queue");
@@ -534,7 +608,7 @@ async function processTask(task) {
             tasksQueue.shift();
 
             console.log("tasks queue after move: " + JSON.stringify(tasksQueue));
-            busy = false;
+            setBusy(false);
 
         }, (error) => {
             console.log("error while doing the move task, task remains in the queue");
@@ -552,7 +626,7 @@ async function processTask(task) {
             tasksQueue.shift();
 
             console.log("tasks queue after test: " + JSON.stringify(tasksQueue));
-            busy = false;
+            setBusy(false);
 
         }, (error) => {
             console.log("error while doing the move task, task remains in the queue");
@@ -567,6 +641,8 @@ function checkReceiveBuffer() {
 
     let receiveCounter = 0;
 
+    // console.log("doing checkReceiveBuffer ...");
+    // console.log(warehouse);
     let i;
     for (i = warehouse.queueReceiveBuffer.getSize(); i > config.maxReceiveBufferSizeForMove; i--) {
 
@@ -587,7 +663,6 @@ function checkReceiveBuffer() {
             tasksQueue.push(reqObject);
             receiveCounter++;
         }
-
     }
 
     if (receiveCounter !== 0) {
@@ -600,10 +675,8 @@ function checkReceiveBuffer() {
 function checkDispatchBuffer() {
 
     let dispatchCounter = 0;
-
     let i;
     for (i = warehouse.queueDispatchBuffer.getSize(); i > config.maxDispatchBufferSizeForMove; i--) {
-
         // check if a task with this packageId and packageDock === dispatchBuffer and dockPosition === (i-1)
         //      is already in the queue
         if (tasksQueue.find(task => task.packageId = warehouse.queueDispatchBuffer.items[i - 1] &&

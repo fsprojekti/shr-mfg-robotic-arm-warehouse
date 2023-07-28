@@ -1,16 +1,18 @@
 import {createRequire} from "module";
 // define require because this app is now defined as a "module" type
 const require = createRequire(import.meta.url);
-
 import express from 'express';
 const app = express();
 
 const config = require('./config/config.json');
 
 import {Warehouse} from "./warehouse.js";
+import {processTask, checkReceiveBuffer} from "./task.js";
+
+// add timestamps in front of all log messages
+require('console-stamp')(console, '[HH:MM:ss.l]');
 
 let warehouse;
-import {processTask, checkReceiveBuffer} from "./task.js";
 
 // global variables
 let busy = false;
@@ -38,12 +40,12 @@ app.get('/requestsQueue', function (req, res) {
 app.get('/warehouse', function (req, res) {
 
     console.log("received a request to the endpoint /warehouse");
-    warehouse = {
-        "storageDock1": warehouse.queueStorageDock1, "storageDock2": warehouse.queueStorageDock2,
-        "storageDock3": warehouse.queueStorageDock3, "storageDock4": warehouse.queueStorageDock4,
-        "receiveBuffer": warehouse.queueReceiveBuffer, "dispatchBuffer": warehouse.queueDispatchBuffer,
+    let warehouseJson = {
+        "queueStorageDock1": warehouse.queueStorageDock1, "queueStorageDock2": warehouse.queueStorageDock2,
+        "queueStorageDock3": warehouse.queueStorageDock3, "queueStorageDock4": warehouse.queueStorageDock4,
+        "queueReceiveBuffer": warehouse.queueReceiveBuffer, "queueDispatchBuffer": warehouse.queueDispatchBuffer,
     }
-    res.send(JSON.stringify(warehouse));
+    res.send(JSON.stringify(warehouseJson));
 
 });
 
@@ -92,30 +94,34 @@ app.listen(config.nodejsPort, function () {
     console.log('Warehouse Node.js server listening on port ' + config.nodejsPort + '!');
 });
 
+function setBusy(value) {
+    busy = value;
+}
+
 // periodically check the tasks queue and process it
 setInterval(async function () {
 
-        console.log("tasks queue at the start of setInterval: " + JSON.stringify(tasksQueue));
+        console.info("tasks queue at the start of setInterval: " + JSON.stringify(tasksQueue));
 
         // check if there is any task in the queue
         if (tasksQueue.length > 0) {
-            console.log("tasks queue not empty")
+            console.info("tasks queue not empty")
             // if the robot arm is not busy doing a task, start a new task
             if (!busy) {
-                console.log("robot arm not busy, started processing a task...")
-                busy = true;
+                console.info("robot arm not busy, started processing a task...")
+                setBusy(true);
                 // take the first task from the queue (FIFO)
                 let task = tasksQueue[0];
-                console.log("processing task: " + JSON.stringify(task));
+                console.info("processing task: " + JSON.stringify(task));
 
                 // process the task
                 await processTask(task);
 
             } else {
-                console.log("robot arm is busy, task not started");
+                console.info("robot arm is busy, task not started");
             }
         } else {
-            console.log("task management: there are no tasks in the queue");
+            console.info("task management: there are no tasks in the queue");
         }
     },
     5000
@@ -129,5 +135,6 @@ setInterval(function () {
 export {
     warehouse,
     tasksQueue,
-    busy
+    busy,
+    setBusy
 };

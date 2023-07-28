@@ -1,4 +1,5 @@
 import {createRequire} from "module";
+
 const require = createRequire(import.meta.url);
 let config = require("./config/config.json");
 
@@ -11,9 +12,9 @@ export class QueueStorageDock1 {
     }
 
     enqueue(item) {
-	console.log("current dock 1 size: ", this.items.length);
-	console.log("adding item: ", item);
-	console.log("dock 1 max length: ", this.maxlength);
+        console.log("current dock 1 size: ", this.items.length);
+        console.log("adding item: ", item);
+        console.log("dock 1 max length: ", this.maxlength);
         if (this.items.length <= this.maxlength - 1) {
             this.topIndex = this.topIndex + 1;
             this.items.push(item);
@@ -26,6 +27,7 @@ export class QueueStorageDock1 {
             return this.items.pop();
         }
     }
+
     //
     // peek() {
     //     return this.items[0];
@@ -49,6 +51,8 @@ export class QueueStorageDock2 {
     }
 
     enqueue(item) {
+        console.log("current dock 2 size: ", this.items.length);
+        console.log("adding item: ", item);
         if (this.items.length <= this.maxlength - 1) {
             this.topIndex = this.topIndex + 1;
             this.items.push(item);
@@ -61,6 +65,7 @@ export class QueueStorageDock2 {
             return this.items.pop();
         }
     }
+
     //
     // peek() {
     //     return this.items[0];
@@ -84,6 +89,8 @@ export class QueueReceiveBuffer {
     }
 
     enqueue(item) {
+        console.log("current receive buffer size: ", this.items.length);
+        console.log("adding item: ", item);
         if (this.items.length <= this.maxlength - 1) {
             this.topIndex = this.topIndex + 1;
             this.items.push(item);
@@ -96,6 +103,7 @@ export class QueueReceiveBuffer {
             return this.items.pop();
         }
     }
+
     //
     // peek() {
     //     return this.items[0];
@@ -132,6 +140,7 @@ export class QueueReceiveDock {
             return this.items.pop();
         }
     }
+
     //
     // peek() {
     //     return this.items[0];
@@ -167,6 +176,7 @@ export class QueueStorageDock4 {
             return this.items.pop();
         }
     }
+
     //
     // peek() {
     //     return this.items[0];
@@ -202,6 +212,7 @@ export class QueueStorageDock3 {
             return this.items.pop();
         }
     }
+
     //
     // peek() {
     //     return this.items[0];
@@ -237,6 +248,7 @@ export class QueueDispatchBuffer {
             return this.items.pop();
         }
     }
+
     //
     // peek() {
     //     return this.items[0];
@@ -272,6 +284,7 @@ export class QueueDispatchDock {
             return this.items.pop();
         }
     }
+
     //
     // peek() {
     //     return this.items[0];

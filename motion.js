@@ -3,12 +3,14 @@ import {createRequire} from "module";
 const require = createRequire(import.meta.url);
 const axios = require("axios").default;
 let Promise = require("es6-promise").Promise;
-
 const config = require("./config/config.json");
-const jetmaxUbuntuServerIpAddress = config.roboticArmIpAddress;
 
 //Warehouse
 import {warehouse} from "./index.js";
+import {getCenterPy, offsetToll} from "./visual.js";
+
+// add timestamps in front of all log messages
+require('console-stamp')(console, '[HH:MM:ss.l]');
 
 //go to reset position
 async function goReset(duration) {
@@ -29,11 +31,10 @@ async function goReset(duration) {
         let X = config.resetLocation.x;
         let Y = config.resetLocation.y;
         let Z = config.resetLocation.z;
-        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
+        await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
             params: {msg: {x: X, y: Y, z: Z, duration: duration}},
         });
-        await warehouse.saveWarehouse();
-        await warehouse.stateWarehouse();
+
         return new Promise((resolve) => {
             setTimeout(() => {
                 warehouse.location = "reset";
@@ -72,11 +73,10 @@ async function goStorageDock1(duration) {
         let Y = config.storageDock1Location.y;
         let Z = config.storageDock1Location.z;
 
-        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
+        await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
             params: {msg: {x: X, y: Y, z: Z, duration: duration}},
         });
-        await warehouse.saveWarehouse();
-        await warehouse.stateWarehouse();
+
         return new Promise((resolve) => {
             setTimeout(() => {
                 warehouse.location = "storageDock1";
@@ -114,11 +114,10 @@ async function goStorageDock2(duration) {
         let Y = config.storageDock2Location.y;
         let Z = config.storageDock2Location.z;
 
-        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
+        await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
             params: {msg: {x: X, y: Y, z: Z, duration: duration}},
         });
-        await warehouse.saveWarehouse();
-        await warehouse.stateWarehouse();
+
         return new Promise((resolve) => {
             setTimeout(() => {
                 warehouse.location = "storageDock2";
@@ -157,11 +156,10 @@ async function goStorageDock3(duration) {
         let Y = config.storageDock3Location.y;
         let Z = config.storageDock3Location.z;
 
-        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
+        await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
             params: {msg: {x: X, y: Y, z: Z, duration: duration}},
         });
-        await warehouse.saveWarehouse();
-        await warehouse.stateWarehouse();
+
         return new Promise((resolve) => {
             setTimeout(() => {
                 warehouse.location = "storageDock3";
@@ -200,11 +198,10 @@ async function goStorageDock4(duration) {
         let Y = config.storageDock4Location.y;
         let Z = config.storageDock4Location.z;
 
-        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
+        await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
             params: {msg: {x: X, y: Y, z: Z, duration: duration}},
         });
-        await warehouse.saveWarehouse();
-        await warehouse.stateWarehouse();
+
         return new Promise((resolve) => {
             setTimeout(() => {
                 warehouse.location = "storageDock4";
@@ -226,24 +223,19 @@ async function goReceiveBuffer(duration) {
 
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
-    if (warehouse.location === "receiveDock")
-        setTimeoutTime = 1500;
-    else
-        setTimeoutTime = 1500;
+    setTimeoutTime = 1200;
 
     console.log("goReceiveBuffer timeout time: " + setTimeoutTime);
-
 
     try {
         let X = config.receiveBufferLocation.x;
         let Y = config.receiveBufferLocation.y;
         let Z = config.receiveBufferLocation.z;
 
-        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
+        await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
             params: {msg: {x: X, y: Y, z: Z, duration: duration}},
         });
-        await warehouse.saveWarehouse();
-        await warehouse.stateWarehouse();
+
         return new Promise((resolve) => {
             setTimeout(() => {
                 warehouse.location = "receiveBuffer";
@@ -263,7 +255,6 @@ async function goReceiveBuffer(duration) {
 // go to dispatch buffer location
 async function goDispatchBuffer(duration) {
 
-
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
     if (warehouse.location === "storageDock3")
@@ -279,17 +270,16 @@ async function goDispatchBuffer(duration) {
 
     console.log("goDispatchBuffer timeout time: " + setTimeoutTime);
 
-
     try {
-        let X = config.dispatchBufferLocation.x; //TODO: check
-        let Y = config.dispatchBufferLocation.y; //TODO: check
-        let Z = config.dispatchBufferLocation.z; //TODO: check
+        let X = config.dispatchBufferLocation.x;
+        let Y = config.dispatchBufferLocation.y;
+        let Z = config.dispatchBufferLocation.z;
 
-        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
+        await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
             params: {msg: {x: X, y: Y, z: Z, duration: duration}},
         });
-        await warehouse.saveWarehouse();
-        await warehouse.stateWarehouse();
+
+
         return new Promise((resolve) => {
             setTimeout(() => {
                 warehouse.location = "dispatchBuffer";
@@ -308,26 +298,22 @@ async function goDispatchBuffer(duration) {
 // go to receive dock location
 async function goReceiveDock(duration) {
 
-
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
-    if (warehouse.location === "reset")
-        setTimeoutTime = 1000;
-    else
-        setTimeoutTime = 1000;
+    setTimeoutTime = 500;
 
     console.log("goReceiveDock timeout time: " + setTimeoutTime);
 
     try {
-        let X = config.receiveDockLocation.x; //TODO: check
-        let Y = config.receiveDockLocation.y; //TODO: check
-        let Z = config.receiveDockLocation.z; //TODO: check
+        let X = config.receiveDockLocation.x;
+        let Y = config.receiveDockLocation.y;
+        let Z = config.receiveDockLocation.z;
 
-        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
+        await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
             params: {msg: {x: X, y: Y, z: Z, duration: duration}},
         });
-        await warehouse.saveWarehouse();
-        await warehouse.stateWarehouse();
+
+
         return new Promise((resolve) => {
             setTimeout(() => {
                 warehouse.location = "receiveDock";
@@ -345,7 +331,6 @@ async function goReceiveDock(duration) {
 
 // go to dispatch dock location
 async function goDispatchDock(duration) {
-
 
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = 0;
@@ -365,15 +350,15 @@ async function goDispatchDock(duration) {
     console.log("goDispatchDock timeout time: " + setTimeoutTime);
 
     try {
-        let X = config.dispatchDockLocation.x; //TODO
-        let Y = config.dispatchDockLocation.y; //TODO
-        let Z = config.dispatchDockLocation.z; //TODO
+        let X = config.dispatchDockLocation.x;
+        let Y = config.dispatchDockLocation.y;
+        let Z = config.dispatchDockLocation.z;
 
-        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/moveTo", {
+        await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
             params: {msg: {x: X, y: Y, z: Z, duration: duration}},
         });
-        await warehouse.saveWarehouse();
-        await warehouse.stateWarehouse();
+
+
         return new Promise((resolve) => {
             setTimeout(() => {
                 warehouse.location = "dispatchDock";
@@ -384,105 +369,118 @@ async function goDispatchDock(duration) {
         console.log("goDispatchDock() error");
         console.log(error);
         return new Promise((resolve, reject) => {
-
             reject(error);
-
         });
     }
 }
 
 // move down above the package and turn the suction on
-async function suctionON(packageIndex, locationX, locationY, locationZ) {
+async function suctionON(packageIndex, locationX, locationY, locationZ, center) {
+
+    let dx1, dy1, dx2, dy2;
+    let newLocationX, newLocationY;
+    let package_id;
 
     try {
-        console.log("doing goDown()");
-        console.log("location index:" + packageIndex);
-        //await goDown(packageIndex);
-        await goDownTagDetection(packageIndex);
-        // TODO: call /objectCenter API
-        // let objectCenterData = await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/objectCenter", {
-        //     params: {msg: {x: locationX, y: locationY, z: locationZ}},
-        // });
-        // console.log("Object center data: " + objectCenterData);
+        console.log("doing moDownTagDetection()");
+        await moveDownTagDetection(locationX, locationY);
 
-        console.log("doing goGrab()");
-        await goGrab();
-        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
+        if (center) {
+            // get center of the april tag and move to correct the position
+            console.log("getting package center ...");
+            await getCenterPy().then((data) => {
+                dx1 = data.x
+                dy1 = data.y
+                package_id = data.id
+            });
+            console.log("package center: ");
+            console.log(dx1 + ", " + dy1)
+            console.log("relative move to correct the position of the robot arm ...");
+
+            newLocationX = locationX + dx1;
+            newLocationY = locationY + dy1;
+
+            await moveXY(newLocationX, newLocationY, config.moveDownTagDetectionHeight);
+
+            //offset suction and camera
+            console.log("move robotic arm to consider the offset between the camera and the suction cup ...");
+            await offsetToll().then((data) => {
+                dx2 = data.x
+                dy2 = data.y
+            });
+
+            newLocationX = newLocationX + dx2;
+            newLocationY = newLocationY + dy2;
+        }
+        else {
+            newLocationX = locationX;
+            newLocationY = locationY;
+        }
+
+        console.log("doing goDown()");
+        console.log("location index: " + packageIndex);
+        await goDown(packageIndex, newLocationX, newLocationY, center);
+
+        await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/suction", {
             params: {msg: {data: true}},
         });
-        console.log("doing goRelease()");
-        await goRelease();
+
         console.log("doing goUp()");
-        await goUp(packageIndex);
-        await warehouse.saveWarehouse();
-        await warehouse.stateWarehouse();
+        await goUp(packageIndex, newLocationX, newLocationY);
+
         return new Promise((resolve) => {
-            //setTimeout(() => {
             resolve("resolved");
-            //}, 1000);
         });
     } catch (error) {
         console.log("suctionON() error");
         console.log(error);
         return new Promise((resolve, reject) => {
-            //setTimeout(() => {
             reject(error);
-            //}, 1000);
         });
     }
 }
 
 // turn the suction off and move up
-async function suctionOFF(packageIndex) {
+async function suctionOFF(packageIndex, locationX, locationY) {
 
     try {
         console.log("doing goDown()");
-        await goDown(packageIndex);
-        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/suction", {
+        await goDown(packageIndex, locationX, locationY);
+        await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/suction", {
             params: {msg: {data: false}},
         });
-        console.log("doing goRelease()");
-        await goRelease();
         console.log("doing goUp()");
-        await goUp(packageIndex);
-        await warehouse.saveWarehouse();
-        await warehouse.stateWarehouse();
+        await goUp(packageIndex, locationX, locationY);
 
         return new Promise((resolve) => {
-            //setTimeout(() => {
             resolve("resolved");
-            //}, 1000);
         });
 
     } catch (error) {
         console.log("suctionOFF() error");
         console.log(error);
         return new Promise((resolve, reject) => {
-            //setTimeout(() => {
             reject(error);
-            //}, 1000);
         });
     }
 }
 
 // move down above the package
-async function goDown(packageIndex) {
+async function goDown(packageIndex, locationX, locationY, center) {
 
     try {
-
         if (packageIndex === 0) {
-            await moveDown(0);
+            await moveDown(0, locationX, locationY, center);
         } else if (packageIndex === 1) {
-            await moveDown(1);
+            await moveDown(1, locationX, locationY, center);
         } else if (packageIndex === 2) {
-            await moveDown(2);
+            await moveDown(2, locationX, locationY, center);
         } else if (packageIndex === 3) {
-            await moveDown(3);
+            await moveDown(3, locationX, locationY, center);
         } else if (packageIndex === 5) {
-            await moveDown(5);
+            await moveDown(5, locationX, locationY, center);
         } else {
             console.log("goDown: incorrect package index: " + packageIndex);
-            throw new Error("goDown: incorrect package index: " + packageIndex);
         }
 
         return new Promise((resolve) => {
@@ -493,108 +491,90 @@ async function goDown(packageIndex) {
         console.log(error);
         return new Promise((resolve, reject) => {
             reject(error);
-
-        });
-    }
-}
-
-// move down to a tag detection height
-async function goDownTagDetection(packageIndex) {
-
-    try {
-        if (packageIndex === 0) {
-            await moveDown(0);
-        } else if (packageIndex === 1) {
-            await moveDown(1);
-        } else if (packageIndex === 2) {
-            await moveDown(2);
-        } else if (packageIndex === 3) {
-            await moveDown(3);
-        } else if (packageIndex === 5) {
-            await moveDown(5);
-        } else {
-            console.log("goDown: incorrect package index: " + packageIndex);
-            throw new Error("goDown: incorrect package index: " + packageIndex);
-        }
-
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve("resolved");
-            }, 1000);
-        });
-    } catch (error) {
-        console.log("goGrab() error");
-        console.log(error);
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                reject(error);
-            }, 1000);
         });
     }
 }
 
 // MOVE DOWN
-async function moveDown(index) {
+async function moveDown(index, locationX, locationY, center) {
 
     console.log("doing moveDown()");
-    let z;
+    let locationZ;
     // read the relative move by z axis from a config file
     if (index === 5)
-        z = config.moveDownZCar;
+        locationZ = config.moveDownZCar;
     else
-        z = config.moveDownZ[index];
-
-    // the robotic arm doesn't move all the way down to the package; it stops a bit higher where a tag detection
-    // and object centering is performed
-    z = z + config.moveDownTagDetectionHeight;
+        locationZ = config.moveDownZ[index];
 
     // duration of the move is dependent on the end position index
     // this is crucial to prevent fast movements
     let moveDuration = config.moveDurationDefault;
 
     try {
-        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/move", {
-            params: {msg: {x: 0, y: 0, z: z, duration: moveDuration}},
+        await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
+            params: {msg: {x: locationX, y: locationY, z: locationZ, duration: moveDuration}},
         });
         return new Promise((resolve) => {
             setTimeout(() => {
                 resolve("resolved");
-            }, 1500);
+            }, 1200);
         });
     } catch (error) {
         console.log("moveDown() error");
         console.log(error);
         return new Promise((resolve, reject) => {
+            reject(error);
+        });
+    }
+}
+
+// MOVE DOWN TO TAG DETECTION HEIGHT
+async function moveDownTagDetection(locationX, locationY) {
+
+    console.log("doing moveDownTagDetection()");
+    // duration of the move is dependent on the end position index
+    // this is crucial to prevent fast movements
+    let moveDuration = config.moveDurationDefault;
+
+    try {
+        await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
+            params: {msg: {x: locationX, y: locationY, z: config.moveDownTagDetectionHeight, duration: moveDuration}},
+        });
+
+        return new Promise((resolve) => {
             setTimeout(() => {
-                reject(error);
-            }, 1000);
+                resolve("resolved");
+            }, 1200);
+        });
+    } catch (error) {
+        console.log("moveDown() error");
+        console.log(error);
+        return new Promise((resolve, reject) => {
+            reject(error);
         });
     }
 }
 
 // go up to a "save" location
-async function goUp(packageIndex) {
+async function goUp(packageIndex, locationX, locationY) {
 
     try {
         if (packageIndex === 0) {
-            await moveUp(0);
+            await moveUp(0, locationX, locationY);
         } else if (packageIndex === 1) {
-            await moveUp(1);
+            await moveUp(1, locationX, locationY);
         } else if (packageIndex === 2) {
-            await moveUp(2);
+            await moveUp(2, locationX, locationY);
         } else if (packageIndex === 3) {
-            await moveUp(3);
+            await moveUp(3, locationX, locationY);
         } else if (packageIndex === 5) {
-            await moveUp(5);
+            await moveUp(5, locationX, locationY);
         } else {
             console.log("goUp: incorrect package index: " + packageIndex);
-            throw new Error("goUp: incorrect package index: " + packageIndex);
         }
 
         return new Promise((resolve) => {
-
             resolve("resolved");
-
         });
     } catch (error) {
         console.log("goUp() error");
@@ -606,28 +586,25 @@ async function goUp(packageIndex) {
 }
 
 // the actual move up
-async function moveUp(index) {
+async function moveUp(index, locationX, locationY) {
 
     console.log("doing moveUp()");
-    let z;
-    // read the relative move by z axis from a config file
-    if (index === 5)
-        z = config.moveUpZCar;
-    else
-        z = config.moveUpZ[index];
+    // read the move by z axis from a config file
+    let locationZ = config.moveUpZCar;
 
     // duration of the move is dependent on the end position index
     // this is crucial to prevent fast movements
     let moveDuration = config.moveDurationDefault;
 
     try {
-        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/move", {
-            params: {msg: {x: 0, y: 0, z: z, duration: moveDuration}},
+        await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
+            params: {msg: {x: locationX, y: locationY, z: locationZ, duration: moveDuration}},
         });
+
         return new Promise((resolve) => {
             setTimeout(() => {
                 resolve("resolved");
-            }, 1500);
+            }, 1200);
         });
     } catch (error) {
         console.log("moveUp() error");
@@ -640,49 +617,42 @@ async function moveUp(index) {
     }
 }
 
-// the last move to reach the package
-async function goGrab() {
+// the first move to leave the package height
+async function moveXY(x, y, z) {
 
     try {
-        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/move", {
-            params: {msg: {x: 0, y: 0, z: (config.goGrabZ - config.moveDownTagDetectionHeight), duration: config.moveDurationDefault}},
+        await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
+            params: {msg: {x: x, y: y, z: z, duration: config.moveToDurationDefault}},
         });
         return new Promise((resolve) => {
             setTimeout(() => {
                 resolve("resolved");
-            }, 1000);
+            }, 100);
         });
     } catch (error) {
-        console.log("goGrab() error");
+        console.log("moveXY() error");
         console.log(error);
         return new Promise((resolve, reject) => {
             setTimeout(() => {
                 reject(error);
-            }, 1000);
+            }, 100);
         });
     }
 }
 
-// the first move to leave the package height
-async function goRelease() {
-
+// call API getState
+async function getState() {
+    // call /basic/state API endpoint
     try {
-        await axios.get("http://" + jetmaxUbuntuServerIpAddress + "/basic/move", {
-            params: {msg: {x: 0, y: 0, z: config.goReleaseZ, duration: config.moveDurationDefault}},
-        });
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve("resolved");
-            }, 1000);
-        });
+        console.log("calling :" + 'http://' + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + '/basic/state');
+        const response = await axios.get('http://' + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + '/basic/state')
+        console.log("/basic/state response received, data:" + JSON.stringify(response.data));
+        return response.data;
+
     } catch (error) {
-        console.log("goRelease() error");
-        console.log(error);
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                reject(error);
-            }, 1000);
-        });
+        console.error("Error calling /basic/state API endpoint.");
+        console.error(error);
+        throw error;
     }
 }
 
@@ -698,5 +668,7 @@ export {
     goReceiveBuffer,
     goReceiveDock,
     suctionOFF,
-    suctionON
+    suctionON,
+    moveXY,
+    getState
 };
