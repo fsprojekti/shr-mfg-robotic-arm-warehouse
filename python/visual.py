@@ -72,8 +72,8 @@ for tag in tags:
     id_text = "id: " + str(id)    # font
     font = cv2.FONT_HERSHEY_SIMPLEX
     # org
-#     org1 = (center[0] + 30, center[1] + 5)
-#     org2 = (center[0] + 30, center[1] + 35)
+    # org1 = (center[0] + 30, center[1] + 5)
+    # org2 = (center[0] + 30, center[1] + 35)
 
     org1 = (220, 400)
     org2 = (220, 440)
@@ -90,14 +90,12 @@ for tag in tags:
     cv2.drawContours(image, corners, -1, (255, 0, 0), 3)
     cv2.circle(image, tuple(center), 5, (255, 255, 0), 10)
 
-
 img_h, img_w = img.shape[:2]
 cv2.line(image, (int(img_w / 2 - 10), int(img_h / 2)), (int(img_w / 2 + 10), int(img_h / 2)), (0, 255, 255), 2)
 cv2.line(image, (int(img_w / 2), int(img_h / 2 - 10)), (int(img_w / 2), int(img_h / 2 + 10)), (0, 255, 255), 2)
 cv2.imwrite("./image/atdetect.jpg", image)
 cv2.imshow("april tags detection",image)
 # cv2.waitKey(0)
-
 
 # save max. area and its coordinates to object data
 data_json = {
