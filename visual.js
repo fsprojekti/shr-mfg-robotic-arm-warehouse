@@ -79,10 +79,10 @@ const getCenterPy = async () => {
         // console.log(data);
         console.log("image data：" + JSON.stringify(visual_py_data));
         // retrieve scale factor that is used for conversion between image pixels coordinates to mm in robotic arm coordinates
-        let scale_factor = image_data.scale;
+        let scale_factor = visual_py_data.scale;
 
-        let dx_center = ((640 / 2) - image_data.x_c) * scale_factor;
-        let dy_center = ((480 / 2) - image_data.y_c) * scale_factor;
+        let dx_center = ((640 / 2) - visual_py_data.x_c) * scale_factor;
+        let dy_center = ((480 / 2) - visual_py_data.y_c) * scale_factor;
 
         // calculate the coordinates of the center of the package using the rotation matrix and the angle between the
         //      basic robotic arm coordinate system and the image coordinate system

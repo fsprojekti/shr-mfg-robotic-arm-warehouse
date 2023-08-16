@@ -5,71 +5,42 @@ import axios from "axios";
 
 const config = require('./config/config.json');
 import {
-    goReset,
-    goReceiveDock,
     suctionON,
-    goReceiveBuffer,
     suctionOFF,
-    goStorageDock1,
-    goStorageDock2,
-    goStorageDock3,
-    goStorageDock4,
-    goDispatchBuffer,
-    goDispatchDock
+    go
 } from "./motion.js";
 import pkg from "es6-promise";
 
 const {Promise} = pkg
 import {warehouse, tasksQueue, setBusy} from "./index.js";
 
-
 // add timestamps in front of all log messages
 require('console-stamp')(console, '[HH:MM:ss.l]');
 
-async function calculateMoveToDuration(startLocation, endLocation) {
-    let duration = config.moveToDurationDefault;
-    if (startLocation === "receiveBuffer" && endLocation === "storageDock1")
-        duration = config.moveToDurationDefault;
-    else if (startLocation === "storageDock4" && endLocation === "dispatchBuffer")
-        duration = config.moveToDurationDefault;
-    // moves from one side of the robot arm to the other side need longer time
-    else if ((startLocation === "storageDock1" || startLocation === "storageDock2") && (endLocation === "storageDock3" || endLocation === "storageDock4"))
-        duration = config.moveToDurationDefault / 2;
-    else if ((startLocation === "storageDock3" || startLocation === "storageDock4") && (endLocation === "storageDock1" || endLocation === "storageDock2"))
-        duration = config.moveToDurationDefault / 2;
-    // moves from the reset location
-    else if (startLocation === "reset") {
-        if (endLocation === "storageDock2" || endLocation === "storageDock3")
-            duration = config.moveToDurationDefault;
-        else if (endLocation === "storageDock1" || endLocation === "storageDock4")
-            duration = config.moveToDurationDefault;
-    } else if (endLocation === "reset") {
-        if (startLocation === "storageDock2" || startLocation === "storageDock3")
-            duration = config.moveToDurationDefault;
-        else if (startLocation === "storageDock1" || startLocation === "storageDock4")
-            duration = config.moveToDurationDefault;
-    }
-    return duration;
-}
-
-// load a package, from a receive dock to the receive buffer
+// load a package, from a reception dock to the reception buffer
 async function load(packageId, receiveBufferIndex) {
 
     try {
-        await goReset(calculateMoveToDuration("", "reset"));
-        await goReceiveDock(calculateMoveToDuration("reset", "receiveDock"));
-        // "packageIndex" for suctionOn() function is 0, because the first move is to the receive dock = robot car
+        await go("", "reset");
+        await go("reset", "receiveDock");
+
+        // await goReset(calculateMoveToDuration("", "reset"));
+        // await goReceiveDock(calculateMoveToDuration("reset", "receiveDock"));
+        // "packageIndex" for suctionOn() function is 0, because the first move is to the reception dock = robot car
         await suctionON(5, config.receiveDockLocation.x, config.receiveDockLocation.y, config.receiveDockLocation.z, true);
         // packageIndex is the topIndex+1 of the receiveBuffer
-        await goReceiveBuffer(calculateMoveToDuration("receiveDock", "receiveBuffer"));
+        await go("receiveDock", "receiveBuffer");
+        // await goReceiveBuffer(calculateMoveToDuration("receiveDock", "receiveBuffer"));
         await suctionOFF(receiveBufferIndex, config.receiveBufferLocation.x, config.receiveBufferLocation.y, config.receiveBufferLocation.z);
 
-        // move the package to the receive buffer queue
+        // move the package to the reception buffer queue
         warehouse.queueReceiveBuffer.enqueue(packageId);
         await warehouse.stateWarehouse();
         await warehouse.saveWarehouse();
 
-        await goReset(calculateMoveToDuration("", "reset"));
+        // await go("", "reset");
+        // await goReset(calculateMoveToDuration("", "reset"));
+        await go("", "reset");
 
         return new Promise((resolve) => {
             resolve("done");
@@ -90,34 +61,41 @@ async function unload(startLocation, packageIndex) {
     let suctionONx, suctionONy, suctionONz;
 
     try {
-        await goReset(calculateMoveToDuration("", "reset"));
+        // await goReset(calculateMoveToDuration("", "reset"));
+        await go("", "reset");
         if (startLocation === "storageDock1") {
-            await goStorageDock1(calculateMoveToDuration("reset", startLocation));
+            // await goStorageDock1(calculateMoveToDuration("reset", startLocation));
+            await go("reset", startLocation);
             suctionONx = config.storageDock1Location.x;
             suctionONy = config.storageDock1Location.y;
             suctionONz = config.storageDock1Location.z;
         } else if (startLocation === "storageDock2") {
-            await goStorageDock2(calculateMoveToDuration("reset", startLocation));
+            // await goStorageDock2(calculateMoveToDuration("reset", startLocation));
+            await go("reset", startLocation);
             suctionONx = config.storageDock2Location.x;
             suctionONy = config.storageDock2Location.y;
             suctionONz = config.storageDock2Location.z;
         } else if (startLocation === "storageDock3") {
-            await goStorageDock3(calculateMoveToDuration("reset", startLocation));
+            // await goStorageDock3(calculateMoveToDuration("reset", startLocation));
+            await go("reset", startLocation);
             suctionONx = config.storageDock3Location.x;
             suctionONy = config.storageDock3Location.y;
             suctionONz = config.storageDock3Location.z;
         } else if (startLocation === "storageDock4") {
-            await goStorageDock4(calculateMoveToDuration("reset", startLocation));
+            // await goStorageDock4(calculateMoveToDuration("reset", startLocation));
+            await go("reset", startLocation);
             suctionONx = config.storageDock4Location.x;
             suctionONy = config.storageDock4Location.y;
             suctionONz = config.storageDock4Location.z;
         } else if (startLocation === "receiveBuffer") {
-            await goReceiveBuffer(calculateMoveToDuration("reset", startLocation));
+            // await goReceiveBuffer(calculateMoveToDuration("reset", startLocation));
+            await go("reset", startLocation);
             suctionONx = config.receiveBufferLocation.x;
             suctionONy = config.receiveBufferLocation.y;
             suctionONz = config.receiveBufferLocation.z;
         } else if (startLocation === "dispatchBuffer") {
-            await goDispatchBuffer(calculateMoveToDuration("reset", startLocation));
+            // await goDispatchBuffer(calculateMoveToDuration("reset", startLocation));
+            await go("reset", startLocation);
             suctionONx = config.dispatchBufferLocation.x;
             suctionONy = config.dispatchBufferLocation.y;
             suctionONz = config.dispatchBufferLocation.z;
@@ -141,10 +119,12 @@ async function unload(startLocation, packageIndex) {
         await warehouse.stateWarehouse();
         await warehouse.saveWarehouse();
 
-        await goDispatchDock(calculateMoveToDuration(startLocation, "dispatchDock"));
+        // await goDispatchDock(calculateMoveToDuration(startLocation, "dispatchDock"));
+        await go(startLocation, "dispatchDock");
         // "packageIndex" of suctionOFF() is 5, because the end location is dispatch dock = robot car
         await suctionOFF(5, config.dispatchDockLocation.x, config.dispatchDockLocation.y, config.dispatchDockLocation.z);
-        await goReset(calculateMoveToDuration("dispatchDock", "reset"));
+        // await goReset(calculateMoveToDuration("dispatchDock", "reset"));
+        await go("dispatchDock", "reset");
 
         return new Promise((resolve) => {
             resolve("done");
@@ -186,46 +166,53 @@ async function move(startLocation, packageIndex) {
     } else
         console.log("move() error: undefined start location");
 
-    let durationMove1 = calculateMoveToDuration("reset", startLocation);
+    // let durationMove1 = calculateMoveToDuration("reset", startLocation);
 
     try {
 
         console.log("doing goReset()");
-        await goReset(calculateMoveToDuration("", "reset"));
+        // await goReset(calculateMoveToDuration("", "reset"));
+        await go("", "reset");
         // move to the start location
         if (startLocation === "storageDock1") {
             console.log("doing goStorageDock1()");
-            await goStorageDock1(durationMove1);
+            // await goStorageDock1(durationMove1);
+            await go("reset", startLocation);
             suctionONx = config.storageDock1Location.x;
             suctionONy = config.storageDock1Location.y;
             suctionONz = config.storageDock1Location.z;
         } else if (startLocation === "storageDock2") {
             console.log("doing goStorageDock2()");
-            await goStorageDock2(durationMove1);
+            // await goStorageDock2(durationMove1);
+            await go("reset", startLocation);
             suctionONx = config.storageDock2Location.x;
             suctionONy = config.storageDock2Location.y;
             suctionONz = config.storageDock2Location.z;
         } else if (startLocation === "storageDock3") {
             console.log("doing goStorageDock3()");
-            await goStorageDock3(durationMove1);
+            // await goStorageDock3(durationMove1);
+            await go("reset", startLocation);
             suctionONx = config.storageDock3Location.x;
             suctionONy = config.storageDock3Location.y;
             suctionONz = config.storageDock3Location.z;
         } else if (startLocation === "storageDock4") {
             console.log("doing goStorageDock4()");
-            await goStorageDock4(durationMove1);
+            // await goStorageDock4(durationMove1);
+            await go("reset", startLocation);
             suctionONx = config.storageDock4Location.x;
             suctionONy = config.storageDock4Location.y;
             suctionONz = config.storageDock4Location.z;
         } else if (startLocation === "receiveBuffer") {
             console.log("doing goReceiveBuffer()");
-            await goReceiveBuffer(durationMove1);
+            // await goReceiveBuffer(durationMove1);
+            await go("reset", startLocation);
             suctionONx = config.receiveBufferLocation.x;
             suctionONy = config.receiveBufferLocation.y;
             suctionONz = config.receiveBufferLocation.z;
         } else if (startLocation === "dispatchBuffer") {
             console.log("doing goDispatchBuffer()");
-            await goDispatchBuffer(durationMove1);
+            // await goDispatchBuffer(durationMove1);
+            await go("reset", startLocation);
             suctionONx = config.dispatchBufferLocation.x;
             suctionONy = config.dispatchBufferLocation.y;
             suctionONz = config.dispatchBufferLocation.z;
@@ -251,14 +238,15 @@ async function move(startLocation, packageIndex) {
         await warehouse.stateWarehouse();
         await warehouse.saveWarehouse();
 
-        let durationMove2 = calculateMoveToDuration(startLocation, newLocation);
+        // let durationMove2 = calculateMoveToDuration(startLocation, newLocation);
 
         console.log("package id:" + packageId);
 
         // move the robot arm to the new location
         if (newLocation === "storageDock1") {
             console.log("doing goStorageDock1()");
-            await goStorageDock1(durationMove2);
+            // await goStorageDock1(durationMove2);
+            await go(startLocation, newLocation);
             suctionOFFx = config.storageDock1Location.x;
             suctionOFFy = config.storageDock1Location.y;
             suctionOFFz = config.storageDock1Location.z;
@@ -267,7 +255,8 @@ async function move(startLocation, packageIndex) {
             warehouse.queueStorageDock1.enqueue(packageId);
         } else if (newLocation === "storageDock2") {
             console.log("doing goStorageDock2()");
-            await goStorageDock2(durationMove2);
+            // await goStorageDock2(durationMove2);
+            await go(startLocation, newLocation);
             suctionOFFx = config.storageDock2Location.x;
             suctionOFFy = config.storageDock2Location.y;
             suctionOFFz = config.storageDock2Location.z;
@@ -276,7 +265,8 @@ async function move(startLocation, packageIndex) {
             warehouse.queueStorageDock2.enqueue(packageId);
         } else if (newLocation === "storageDock3") {
             console.log("doing goStorageDock3()");
-            await goStorageDock3(durationMove2);
+            // await goStorageDock3(durationMove2);
+            await go(startLocation, newLocation);
             suctionOFFx = config.storageDock3Location.x;
             suctionOFFy = config.storageDock3Location.y;
             suctionOFFz = config.storageDock3Location.z;
@@ -285,7 +275,8 @@ async function move(startLocation, packageIndex) {
             warehouse.queueStorageDock3.enqueue(packageId);
         } else if (newLocation === "storageDock4") {
             console.log("doing goStorageDock4()");
-            await goStorageDock4(durationMove2);
+            // await goStorageDock4(durationMove2);
+            await go(startLocation, newLocation);
             suctionOFFx = config.storageDock4Location.x;
             suctionOFFy = config.storageDock4Location.y;
             suctionOFFz = config.storageDock4Location.z;
@@ -294,7 +285,8 @@ async function move(startLocation, packageIndex) {
             warehouse.queueStorageDock4.enqueue(packageId);
         } else if (newLocation === "receiveBuffer") {
             console.log("doing receiveBuffer()");
-            await goReceiveBuffer(durationMove2)
+            // await goReceiveBuffer(durationMove2)
+            await go(startLocation, newLocation);
             suctionOFFx = config.receiveBufferLocation.x;
             suctionOFFy = config.receiveBufferLocation.y;
             suctionOFFz = config.receiveBufferLocation.z;
@@ -303,7 +295,8 @@ async function move(startLocation, packageIndex) {
             warehouse.queueReceiveBuffer.enqueue(packageId);
         } else if (newLocation === "dispatchBuffer") {
             console.log("doing dispatchBuffer()");
-            await goDispatchBuffer(durationMove2);
+            // await goDispatchBuffer(durationMove2);
+            await go(startLocation, newLocation);
             suctionOFFx = config.dispatchBufferLocation.x;
             suctionOFFy = config.dispatchBufferLocation.y;
             suctionOFFz = config.dispatchBufferLocation.z;
@@ -316,7 +309,8 @@ async function move(startLocation, packageIndex) {
         await warehouse.saveWarehouse();
 
         console.log("doing goReset()");
-        await goReset(calculateMoveToDuration(newLocation, "reset"));
+        // await goReset(calculateMoveToDuration(newLocation, "reset"));
+        await go(newLocation, "reset");
 
         return new Promise((resolve) => {
             resolve("done");
@@ -355,7 +349,7 @@ async function processTask(task) {
 // if the task is to load a package from a car to the storage
     if (task.mode === "load") {
         console.log("task mode is load");
-        // first check if the receive buffer is full
+        // first check if the reception buffer is full
         if (warehouse.queueReceiveBuffer.getSize() === 4)
             console.log("error, receive buffer is full, load task not performed");
         // receive buffer is not full, proceed with the load task
@@ -381,7 +375,7 @@ async function processTask(task) {
                     //         tasksQueue.shift();
                     //         console.log("tasks queue after load: " + JSON.stringify(tasksQueue));
                     //         setBusy(false);
-                    //         // check if the receive buffer is too full and create a move task (or tasks)
+                    //         // check if the reception buffer is too full and create a move task (or tasks)
                     //         checkReceiveBuffer();
                     //     },
                     //     (error) => {
@@ -519,7 +513,7 @@ async function processTask(task) {
                 });
 
             } else if ((itemIndex = warehouse.queueReceiveBuffer.items.indexOf(task.packageId)) !== -1) {
-                // package is in the receive buffer
+                // package is in the reception buffer
                 console.log("package is in the receive buffer");
                 console.log("packageId: " + itemIndex);
 
@@ -569,9 +563,9 @@ async function processTask(task) {
                 await unload("dispatchBuffer", warehouse.queueDispatchBuffer.topIndex);
 
                 // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
-                await axios.get(config.controlAppUrl + "/dispatchFinished", {
-                    params: {offerId: tasksQueue[0].offerId}
-                });
+                // await axios.get(config.controlAppUrl + "/dispatchFinished", {
+                //     params: {offerId: tasksQueue[0].offerId}
+                // });
 
             } else {
                 console.log("error, the package is not in the warehouse")

@@ -12,27 +12,203 @@ import {getCenterPy, offsetToll} from "./visual.js";
 // add timestamps in front of all log messages
 require('console-stamp')(console, '[HH:MM:ss.l]');
 
-//go to reset position
-async function goReset(duration) {
+// calculate how much time should a move take
+async function calculateMoveToDuration(startLocation, endLocation) {
+    let duration = config.moveToDurationDefault;
+    if (startLocation === "receiveBuffer" && endLocation === "storageDock1")
+        duration = config.moveToDurationDefault;
+    else if (startLocation === "storageDock4" && endLocation === "dispatchBuffer")
+        duration = config.moveToDurationDefault;
+    // moves from one side of the robot arm to the other side need longer time
+    else if ((startLocation === "storageDock1" || startLocation === "storageDock2") && (endLocation === "storageDock3" || endLocation === "storageDock4"))
+        duration = config.moveToDurationDefault / 2;
+    else if ((startLocation === "storageDock3" || startLocation === "storageDock4") && (endLocation === "storageDock1" || endLocation === "storageDock2"))
+        duration = config.moveToDurationDefault / 2;
+    // moves from the reset location
+    else if (startLocation === "reset") {
+        if (endLocation === "storageDock2" || endLocation === "storageDock3")
+            duration = config.moveToDurationDefault;
+        else if (endLocation === "storageDock1" || endLocation === "storageDock4")
+            duration = config.moveToDurationDefault;
+    } else if (endLocation === "reset") {
+        if (startLocation === "storageDock2" || startLocation === "storageDock3")
+            duration = config.moveToDurationDefault;
+        else if (startLocation === "storageDock1" || startLocation === "storageDock4")
+            duration = config.moveToDurationDefault;
+    }
+    return duration;
+}
+
+// calculate how much time should we wait for the robot arm to finish a move
+async function calculateSetTimeoutTime(endLocation) {
+
+    let setTimeoutTime = 0;
+    if (endLocation === "reset" && warehouse.location === "reset")
+        setTimeoutTime = 0;
+    else if (endLocation === "reset" && warehouse.location === "receiveDock" || warehouse.location === "receiveBuffer" || warehouse.location === "dispatchDock" || warehouse.location === "dispatchBuffer")
+        setTimeoutTime = 800;
+    else if (endLocation === "reset" && warehouse.location === "storageDock2" || warehouse.location === "storageDock3")
+        setTimeoutTime = 1200;
+    else if (endLocation === "reset")
+        setTimeoutTime = 1500;
+
+    // if end location is storageDock1
+    else if (endLocation === "storageDock1" && warehouse.location === "storageDock2")
+        setTimeoutTime = 1000;
+    else if (endLocation === "storageDock1" && warehouse.location === "receiveBuffer")
+        setTimeoutTime = 1000;
+    else if (endLocation === "storageDock1" && warehouse.location === "storageDock3")
+        setTimeoutTime = 2000;
+    else if (endLocation === "storageDock1" && warehouse.location === "storageDock4")
+        setTimeoutTime = 2000;
+    else if (endLocation === "storageDock1")
+        setTimeoutTime = 2000;
+
+    // if end location is storageDock2
+    else if (endLocation === "storageDock2" && warehouse.location === "storageDock1")
+        setTimeoutTime = 1000;
+    else if (endLocation === "storageDock2" && warehouse.location === "receiveBuffer")
+        setTimeoutTime = 1000;
+    else if (endLocation === "storageDock2" && warehouse.location === "storageDock3")
+        setTimeoutTime = 1800;
+    else if (endLocation === "storageDock2" && warehouse.location === "storageDock4")
+        setTimeoutTime = 2000;
+    else if (endLocation === "storageDock2")
+        setTimeoutTime = 2000;
+
+    // if end location is storageDock3
+    else if (endLocation === "storageDock3" && warehouse.location === "storageDock4")
+        setTimeoutTime = 1000;
+    else if (endLocation === "storageDock3" && warehouse.location === "dispatchBuffer")
+        setTimeoutTime = 1000;
+    else if (endLocation === "storageDock3" && warehouse.location === "storageDock2")
+        setTimeoutTime = 2000;
+    else if (endLocation === "storageDock3" && warehouse.location === "storageDock1")
+        setTimeoutTime = 2000;
+    else if (endLocation === "storageDock3")
+        setTimeoutTime = 2000;
+
+    // if end location is storageDock4
+    else if (endLocation === "storageDock4" && warehouse.location === "storageDock3")
+        setTimeoutTime = 1000;
+    else if (endLocation === "storageDock4" && warehouse.location === "dispatchBuffer")
+        setTimeoutTime = 1000;
+    else if (endLocation === "storageDock4" && warehouse.location === "storageDock2")
+        setTimeoutTime = 2000;
+    else if (endLocation === "storageDock4" && warehouse.location === "storageDock1")
+        setTimeoutTime = 2000;
+    else if (endLocation === "storageDock4")
+        setTimeoutTime = 2000;
+
+    // if end location is receiveBuffer (then the start location is loading dock)
+    else if (endLocation === "receiveBuffer")
+        setTimeoutTime = 1200;
+
+    // if end location is dispatch buffer
+    else if (endLocation === "dispatchBuffer" && warehouse.location === "storageDock3")
+        setTimeoutTime = 1000;
+    else if (endLocation === "dispatchBuffer" && warehouse.location === "storageDock4")
+        setTimeoutTime = 1000;
+    else if (endLocation === "dispatchBuffer" && warehouse.location === "storageDock2")
+        setTimeoutTime = 1500;
+    else if (endLocation === "dispatchBuffer" && warehouse.location === "storageDock1")
+        setTimeoutTime = 1800;
+    else if (endLocation === "dispatchBuffer")
+        setTimeoutTime = 2000;
+
+    // if end location is receiveDock
+    else if (endLocation === "receiveDock")
+        setTimeoutTime = 500;
+
+    // if end location is dispatch dock
+    else if (endLocation === "dispatchDock" && warehouse.location === "storageDock3")
+        setTimeoutTime = 1200;
+    else if (endLocation === "dispatchDock" && warehouse.location === "storageDock4")
+        setTimeoutTime = 1500;
+    else if (endLocation === "dispatchDock" && warehouse.location === "storageDock2")
+        setTimeoutTime = 1200;
+    else if (endLocation === "dispatchDock" && warehouse.location === "storageDock1")
+        setTimeoutTime = 1500;
+    else if (endLocation === "dispatchDock" && warehouse.location === "dispatchBuffer")
+        setTimeoutTime = 1000;
+    else if (endLocation === "dispatchDock")
+        setTimeoutTime = 1500;
+
+    console.log("move to " + endLocation + " timeout time: " + setTimeoutTime);
+
+    return setTimeoutTime;
+}
+
+// get (absolute) coordinates of the end location
+async function getEndLocationCoordinates(endLocation) {
+
+    let coordinates = {};
+
+    if (endLocation === "reset") {
+        coordinates.x = config.resetLocation.x;
+        coordinates.y= config.resetLocation.y;
+        coordinates.z = config.resetLocation.z;
+    }
+    else if (endLocation === "storageDock1") {
+        coordinates.x = config.storageDock1Location.x;
+        coordinates.y= config.storageDock1Location.y;
+        coordinates.z = config.storageDock1Location.z;
+    }
+    else if (endLocation === "storageDock2") {
+        coordinates.x = config.storageDock2Location.x;
+        coordinates.y= config.storageDock2Location.y;
+        coordinates.z = config.storageDock2Location.z;
+    }
+    else if (endLocation === "storageDock3") {
+        coordinates.x = config.storageDock3Location.x;
+        coordinates.y= config.storageDock3Location.y;
+        coordinates.z = config.storageDock3Location.z;
+    }
+    else if (endLocation === "storageDock4") {
+        coordinates.x = config.storageDock4Location.x;
+        coordinates.y= config.storageDock4Location.y;
+        coordinates.z = config.storageDock4Location.z;
+    }
+    else if (endLocation === "receiveBuffer") {
+        coordinates.x = config.receiveBufferLocation.x;
+        coordinates.y= config.receiveBufferLocation.y;
+        coordinates.z = config.receiveBufferLocation.z;
+    }
+    else if (endLocation === "dispatchBuffer") {
+        coordinates.x = config.dispatchBufferLocation.x;
+        coordinates.y= config.dispatchBufferLocation.y;
+        coordinates.z = config.dispatchBufferLocation.z;
+    }
+    else if (endLocation === "receiveDock") {
+        coordinates.x = config.receiveDockLocation.x;
+        coordinates.y= config.receiveDockLocation.y;
+        coordinates.z = config.receiveDockLocation.z;
+    }
+    else if (endLocation === "dispatchDock") {
+        coordinates.x = config.dispatchDockLocation.x;
+        coordinates.y= config.dispatchDockLocation.y;
+        coordinates.z = config.dispatchDockLocation.z;
+    }
+
+    console.log("end location coordinates:" + coordinates.x + ", " + coordinates.y + ", " + coordinates.z);
+
+    return coordinates;
+}
+
+async function go(startLocation, endLocation) {
+
+    // duration of the move operation
+    let duration = calculateMoveToDuration(startLocation, endLocation);
 
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
-    let setTimeoutTime = 0;
-    if (warehouse.location === "reset")
-        setTimeoutTime = 100;
-    else if (warehouse.location === "receiveDock" || warehouse.location === "receiveBuffer" || warehouse.location === "dispatchDock" || warehouse.location === "dispatchBuffer")
-        setTimeoutTime = 800;
-    else if (warehouse.location === "storageDock2" || warehouse.location === "storageDock3")
-        setTimeoutTime = 1200;
-    else
-        setTimeoutTime = 1500;
-    console.log("goReset timeout time: " + setTimeoutTime);
+    let setTimeoutTime = await calculateSetTimeoutTime(endLocation);
+
+    // end location coordinates
+    let endLocationCoordinates = await getEndLocationCoordinates(endLocation);
 
     try {
-        let X = config.resetLocation.x;
-        let Y = config.resetLocation.y;
-        let Z = config.resetLocation.z;
         await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
-            params: {msg: {x: X, y: Y, z: Z, duration: duration}},
+            params: {msg: {x: endLocationCoordinates.x, y: endLocationCoordinates.y, z: endLocationCoordinates.z, duration: duration}},
         });
 
         return new Promise((resolve) => {
@@ -42,334 +218,10 @@ async function goReset(duration) {
             }, setTimeoutTime);
         });
     } catch (error) {
-        console.log("goReset() error");
+        console.log("error moving to " + endLocation);
         console.log(error);
         return new Promise((resolve) => {
             resolve(error);
-        });
-    }
-}
-
-//go to storage dock 1 location
-async function goStorageDock1(duration) {
-
-    // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
-    let setTimeoutTime = 0;
-    if (warehouse.location === "storageDock2")
-        setTimeoutTime = 1000;
-    else if (warehouse.location === "receiveBuffer")
-        setTimeoutTime = 1000;
-    else if (warehouse.location === "storageDock3")
-        setTimeoutTime = 2000;
-    else if (warehouse.location === "storageDock4")
-        setTimeoutTime = 2000;
-    else
-        setTimeoutTime = 2000;
-
-    console.log("goStorageD1 timeout time: " + setTimeoutTime);
-
-    try {
-        let X = config.storageDock1Location.x;
-        let Y = config.storageDock1Location.y;
-        let Z = config.storageDock1Location.z;
-
-        await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
-            params: {msg: {x: X, y: Y, z: Z, duration: duration}},
-        });
-
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                warehouse.location = "storageDock1";
-                resolve("resolved");
-            }, setTimeoutTime);
-        });
-    } catch (error) {
-        console.log("goStorageD1() error");
-        console.log(error);
-        return new Promise((resolve) => {
-            resolve(error);
-        });
-    }
-}
-
-//go to storage dock 2 location
-async function goStorageDock2(duration) {
-
-    // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
-    let setTimeoutTime = 0;
-    if (warehouse.location === "storageDock1")
-        setTimeoutTime = 1000;
-    else if (warehouse.location === "receiveBuffer")
-        setTimeoutTime = 1000;
-    else if (warehouse.location === "storageDock3")
-        setTimeoutTime = 1800;
-    else if (warehouse.location === "storageDock4")
-        setTimeoutTime = 2000;
-    else
-        setTimeoutTime = 2000;
-    console.log("goStorageD2 timeout time: " + setTimeoutTime);
-
-    try {
-        let X = config.storageDock2Location.x;
-        let Y = config.storageDock2Location.y;
-        let Z = config.storageDock2Location.z;
-
-        await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
-            params: {msg: {x: X, y: Y, z: Z, duration: duration}},
-        });
-
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                warehouse.location = "storageDock2";
-                resolve("resolved");
-            }, setTimeoutTime);
-        });
-    } catch (error) {
-        console.log("goStorageD2() error");
-        console.log(error);
-        return new Promise((resolve, reject) => {
-            reject(error);
-        });
-    }
-}
-
-// go to storage dock 3 location
-async function goStorageDock3(duration) {
-
-    // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
-    let setTimeoutTime = 0;
-    if (warehouse.location === "storageDock4")
-        setTimeoutTime = 1000;
-    else if (warehouse.location === "dispatchBuffer")
-        setTimeoutTime = 1000;
-    else if (warehouse.location === "storageDock2")
-        setTimeoutTime = 2000;
-    else if (warehouse.location === "storageDock1")
-        setTimeoutTime = 2000;
-    else
-        setTimeoutTime = 2000;
-
-    console.log("goStorageD3 timeout time: " + setTimeoutTime);
-
-    try {
-        let X = config.storageDock3Location.x;
-        let Y = config.storageDock3Location.y;
-        let Z = config.storageDock3Location.z;
-
-        await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
-            params: {msg: {x: X, y: Y, z: Z, duration: duration}},
-        });
-
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                warehouse.location = "storageDock3";
-                resolve("resolved");
-            }, setTimeoutTime);
-        });
-    } catch (error) {
-        console.log("goStorageD3() error");
-        console.log(error);
-        return new Promise((resolve, reject) => {
-            reject(error);
-        });
-    }
-}
-
-// go to storage dock 4 location
-async function goStorageDock4(duration) {
-
-    // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
-    let setTimeoutTime = 0;
-    if (warehouse.location === "storageDock3")
-        setTimeoutTime = 1000;
-    else if (warehouse.location === "dispatchBuffer")
-        setTimeoutTime = 1000;
-    else if (warehouse.location === "storageDock2")
-        setTimeoutTime = 2000;
-    else if (warehouse.location === "storageDock1")
-        setTimeoutTime = 2000;
-    else
-        setTimeoutTime = 2000;
-
-    console.log("goStorageD4 timeout time: " + setTimeoutTime);
-
-    try {
-        let X = config.storageDock4Location.x;
-        let Y = config.storageDock4Location.y;
-        let Z = config.storageDock4Location.z;
-
-        await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
-            params: {msg: {x: X, y: Y, z: Z, duration: duration}},
-        });
-
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                warehouse.location = "storageDock4";
-                resolve("resolved");
-            }, setTimeoutTime);
-        });
-    } catch (error) {
-        console.log("goStorageD4() error");
-        console.log(error);
-        return new Promise((resolve, reject) => {
-            reject(error);
-
-        });
-    }
-}
-
-// go to receive buffer location
-async function goReceiveBuffer(duration) {
-
-    // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
-    let setTimeoutTime = 0;
-    setTimeoutTime = 1200;
-
-    console.log("goReceiveBuffer timeout time: " + setTimeoutTime);
-
-    try {
-        let X = config.receiveBufferLocation.x;
-        let Y = config.receiveBufferLocation.y;
-        let Z = config.receiveBufferLocation.z;
-
-        await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
-            params: {msg: {x: X, y: Y, z: Z, duration: duration}},
-        });
-
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                warehouse.location = "receiveBuffer";
-                resolve("resolved");
-            }, setTimeoutTime);
-        });
-
-    } catch (error) {
-        console.log("goReceiveBuffer() error");
-        console.log(error);
-        return new Promise((resolve, reject) => {
-            reject(error);
-        });
-    }
-}
-
-// go to dispatch buffer location
-async function goDispatchBuffer(duration) {
-
-    // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
-    let setTimeoutTime = 0;
-    if (warehouse.location === "storageDock3")
-        setTimeoutTime = 1000;
-    else if (warehouse.location === "storageDock4")
-        setTimeoutTime = 1000;
-    else if (warehouse.location === "storageDock2")
-        setTimeoutTime = 1500;
-    else if (warehouse.location === "storageDock1")
-        setTimeoutTime = 1800;
-    else
-        setTimeoutTime = 2000;
-
-    console.log("goDispatchBuffer timeout time: " + setTimeoutTime);
-
-    try {
-        let X = config.dispatchBufferLocation.x;
-        let Y = config.dispatchBufferLocation.y;
-        let Z = config.dispatchBufferLocation.z;
-
-        await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
-            params: {msg: {x: X, y: Y, z: Z, duration: duration}},
-        });
-
-
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                warehouse.location = "dispatchBuffer";
-                resolve("resolved");
-            }, setTimeoutTime);
-        });
-    } catch (error) {
-        console.log("goDispatchBuffer() error");
-        console.log(error);
-        return new Promise((resolve, reject) => {
-            reject(error);
-        });
-    }
-}
-
-// go to receive dock location
-async function goReceiveDock(duration) {
-
-    // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
-    let setTimeoutTime = 0;
-    setTimeoutTime = 500;
-
-    console.log("goReceiveDock timeout time: " + setTimeoutTime);
-
-    try {
-        let X = config.receiveDockLocation.x;
-        let Y = config.receiveDockLocation.y;
-        let Z = config.receiveDockLocation.z;
-
-        await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
-            params: {msg: {x: X, y: Y, z: Z, duration: duration}},
-        });
-
-
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                warehouse.location = "receiveDock";
-                resolve("resolved");
-            }, setTimeoutTime);
-        });
-    } catch (error) {
-        console.log("goReceiveDock() error");
-        console.log(error);
-        return new Promise((resolve, reject) => {
-            reject(error);
-        });
-    }
-}
-
-// go to dispatch dock location
-async function goDispatchDock(duration) {
-
-    // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
-    let setTimeoutTime = 0;
-    if (warehouse.location === "storageDock3")
-        setTimeoutTime = 1200;
-    else if (warehouse.location === "storageDock4")
-        setTimeoutTime = 1500;
-    else if (warehouse.location === "storageDock2")
-        setTimeoutTime = 1200;
-    else if (warehouse.location === "storageDock1")
-        setTimeoutTime = 1500;
-    else if (warehouse.location === "dispatchBuffer")
-        setTimeoutTime = 1000;
-    else
-        setTimeoutTime = 1500;
-
-    console.log("goDispatchDock timeout time: " + setTimeoutTime);
-
-    try {
-        let X = config.dispatchDockLocation.x;
-        let Y = config.dispatchDockLocation.y;
-        let Z = config.dispatchDockLocation.z;
-
-        await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
-            params: {msg: {x: X, y: Y, z: Z, duration: duration}},
-        });
-
-
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                warehouse.location = "dispatchDock";
-                resolve("resolved");
-            }, setTimeoutTime);
-        });
-    } catch (error) {
-        console.log("goDispatchDock() error");
-        console.log(error);
-        return new Promise((resolve, reject) => {
-            reject(error);
         });
     }
 }
@@ -411,8 +263,7 @@ async function suctionON(packageIndex, locationX, locationY, locationZ, center) 
 
             newLocationX = newLocationX + dx2;
             newLocationY = newLocationY + dy2;
-        }
-        else {
+        } else {
             newLocationX = locationX;
             newLocationY = locationY;
         }
@@ -657,16 +508,8 @@ async function getState() {
 }
 
 export {
+    go,
     goDown,
-    goReset,
-    goStorageDock1,
-    goStorageDock2,
-    goStorageDock3,
-    goStorageDock4,
-    goDispatchBuffer,
-    goDispatchDock,
-    goReceiveBuffer,
-    goReceiveDock,
     suctionOFF,
     suctionON,
     moveXY,
