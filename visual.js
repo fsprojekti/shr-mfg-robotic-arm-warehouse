@@ -6,7 +6,7 @@ const fs = require("fs");
 const exec = require('child_process').exec;
 // const path = require('path');
 const axios = require("axios");
-import {moveXY, getState} from "./motion.js";
+import {getState} from "./motion.js";
 
 // add timestamps in front of all log messages
 require('console-stamp')(console, '[HH:MM:ss.l]');
@@ -89,7 +89,7 @@ const getCenterPy = async () => {
         image_data = {
             x: dx_center * (-1) * Math.sin(o) + dy_center * Math.cos(o),
             y: dx_center * Math.cos(o) + dy_center * Math.sin(o), // +dy;
-            id: image_data.id
+            id: visual_py_data.id
         } // -dy
         console.log("first angle :", o * 180 / Math.PI);
         console.log(image_data);
