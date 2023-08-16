@@ -4,30 +4,20 @@ const require = createRequire(import.meta.url);
 const fs = require("fs");
 
 //QUEUES
-import {
-    QueueStorageDock1,
-    QueueStorageDock2,
-    QueueStorageDock3,
-    QueueStorageDock4,
-    QueueReceiveDock,
-    QueueReceiveBuffer,
-    QueueDispatchBuffer,
-    QueueDispatchDock,
-    // QueueRobot,
-} from "./queue.js";
+import {Dock} from "./queue.js";
 
 export class Warehouse {
 
     constructor() {
         this.location = "reset";
-        this.queueStorageDock1 = new QueueStorageDock1();
-        this.queueStorageDock2 = new QueueStorageDock2();
-        this.queueReceiveBuffer = new QueueReceiveBuffer();
-        this.queueReceiveDock = new QueueReceiveDock();
-        this.queueStorageDock4 = new QueueStorageDock4();
-        this.queueStorageDock3 = new QueueStorageDock3();
-        this.queueDispatchBuffer = new QueueDispatchBuffer();
-        this.queueDispatchDock = new QueueDispatchDock();
+        this.queueStorageDock1 = new Dock();
+        this.queueStorageDock2 = new Dock();
+        this.queueReceiveBuffer = new Dock();
+        this.queueReceiveDock = new Dock();
+        this.queueStorageDock4 = new Dock();
+        this.queueStorageDock3 = new Dock();
+        this.queueDispatchBuffer = new Dock();
+        this.queueDispatchDock = new Dock();
     }
 
     // print the current state of the warehouse to the console

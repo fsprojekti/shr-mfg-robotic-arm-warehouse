@@ -28,18 +28,10 @@ require('console-stamp')(console, '[HH:MM:ss.l]');
 
 async function calculateMoveToDuration(startLocation, endLocation) {
     let duration = config.moveToDurationDefault;
-    // if(startLocation = "receiveDock"): default duration
-    // if(endLocation === "receiveBuffer"): default duration
-    // if(startLocation = "receiveBuffer" && endLocation === "storageDock2"): default duration
     if (startLocation === "receiveBuffer" && endLocation === "storageDock1")
         duration = config.moveToDurationDefault;
-        // if (startLocation === "storageDock1" && endLocation = "storageDock2"   || startLocation === "storageDock2" && endLocation = "storageDock1"): default duration
-        // if(startLocation === "dispatchBuffer"): default duration
-        // if(endLocation === "dispatchDock"): default duration
-    // if startLocation = "storageDock3" && endLocation === "dispatchBuffer": default duration
     else if (startLocation === "storageDock4" && endLocation === "dispatchBuffer")
         duration = config.moveToDurationDefault;
-        // if (startLocation === "storageDock3" && endLocation = "storageDock4"   || startLocation === "storageDock4" && endLocation = "storageDock3"): default duration
     // moves from one side of the robot arm to the other side need longer time
     else if ((startLocation === "storageDock1" || startLocation === "storageDock2") && (endLocation === "storageDock3" || endLocation === "storageDock4"))
         duration = config.moveToDurationDefault / 2;
@@ -411,9 +403,7 @@ async function processTask(task) {
         let itemIndex;
 
         try {
-
             console.log("tasks queue:" + JSON.stringify(tasksQueue));
-
             // first check if the package is actually in the storage
             // check each of six docks where the package could potentially be stored
             if ((itemIndex = warehouse.queueStorageDock1.items.indexOf(task.packageId)) !== -1) {
@@ -602,11 +592,9 @@ async function processTask(task) {
 
         let promiseMove = move(task.packageDock, task.dockPosition)
         promiseMove.then(() => {
-
             console.log("the move task successfully finished, removing the task from the queue")
             // remove the task from the queue
             tasksQueue.shift();
-
             console.log("tasks queue after move: " + JSON.stringify(tasksQueue));
             setBusy(false);
 
