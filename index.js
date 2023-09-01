@@ -15,7 +15,9 @@ require('console-stamp')(console, '[HH:MM:ss.l]');
 let warehouse;
 
 // global variables
+// busy: defined if the robotic arm is busy with processing a task
 let busy = false;
+// tasksQueue: an array of tasks waiting to be processed on FIFO principle
 let tasksQueue = [];
 
 // #### API ENDPOINTS ####
@@ -87,13 +89,14 @@ app.listen(config.nodejsPort, function () {
     // initialize warehouse state
     // create a warehouse object
     warehouse = new Warehouse();
-    // read last warehouse state from warehouse.json
+    // read last saved warehouse state from warehouse.json
     warehouse.readWarehouse();
     console.log(JSON.stringify(warehouse));
 
     console.log('Warehouse Node.js server listening on port ' + config.nodejsPort + '!');
 });
 
+// set the state of the warehouse
 function setBusy(value) {
     busy = value;
 }
@@ -127,6 +130,7 @@ setInterval(async function () {
     5000
 );
 
+// periodically check the reception buffer and generate a move task if the size of the buffer exceeds the threshold set in the config
 setInterval(function () {
     checkReceiveBuffer();
 

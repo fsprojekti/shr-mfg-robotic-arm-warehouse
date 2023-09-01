@@ -82,33 +82,24 @@ There are several types of tasks, each with its own specific functionality:
 | <code>/warehouse</code>     | /                              					           | get current state of the warehouse (array of packages in all docks) | warehouse object in JSON string format |
 | <code>/dispatch</code>      | {"packageId": id, "offerId": id, "mode": load} | called by a controll app to request a dispatch (load/unload)        | {status: accept/reject} 				           |
 
-### State of the application after 2022 Summer School on IIoT and blockchain
+### State of the application before 2023 Summer School on IIoT and blockchain
 * the application is currently operational with the following characteristics:
 	* The terms "receiveDock" and "dispatchDocks" refer to the same entity -- the dock on the robot car. Both of these have been configured with a size of 1.
-	* The sizes of receiveBuffer, dispatchBuffer, and storage docks are currently set to 2. However, the dispatchBuffer is not being utilized in the application at this time.
+	* The sizes of receiveBuffer and dispatchBuffer are currently set to 2. However, the dispatchBuffer is not being utilized in the application at this time.
 	* The receiveBuffer begins relocating packages when its occupation limit of 2 is reached. Relocations from the receiveBuffer or any of the storage docks are directed towards the least occupied location.
 	* Unloading tasks are performed directly to the dispatch dock (robot car), bypassing the dispatch buffer entirely.
 	* Move speeds for the /move command are set in the configuration, while move durations for the /moveTo command are calculated adaptively, based on the starting and finishing locations.
 	* To avoid overly rapid or slow movements, the setTimeout durations for the robotic arm commands are determined by the starting and finishing locations.
-	* At this time, the robotic arm does not employ camera recognition to identify packages using AprilTags and accurately position above the center of the package. This feature is planned for future implementation in a separate project, found at: https://github.com/fsprojekti/shr-mfg-robotic-arm-visual-detection
+	* Robotic arm employs camera recognition to identify packages using AprilTags and accurately position above the center of the package. This feature is used for loading the packages from the robot car and unloading to the car.
 	* Most of the application parameters are derived from the config.json file.
 
-### TODO list for the robotic arms for 2023 Summer School on IIoT and blockchain
-* implement visual detection and correction of the packages using AprilTags: integrate solution from Wei Wang: https://github.com/fsprojekti/shr-mfg-robotic-arm-visual
-* reconfigure internal package movements/relocations:
-	* use dispatchBuffer?
-	* how big should the receiveBuffer and dispatchBuffer be?
-	* where to put the the package: to the least occupied dock or should a more advanced logic be used?
-	* how to relocate packages that are above the currently processed package? what kind of logic should be used?
-
-### State of the robotic arms after 2022 Summer School on IIoT and blockchain
+### State of the robotic arms before 2023 Summer School on IIoT and blockchain
 * operating system is burned to an SD card
 * only use OS image received by the robotic arm manufacturer which is adapted to the specific version of the robotic arm
 * by default, after the OS boots the HiWonder toolbox process sets up a WiFi hotspot to enable connections from other computers
-	* to connect the robotic arm to other WiFi networks, change the following file:
+	* to connect the robotic arm to other WiFi networks, edit the following file:
 		* filename: /home/hiwonder/hiwonder_wifi_conf.py
 		* uncomment the line: **HW_WIFI_MODE** and set it to **2**
 		* uncomment the lines **HW_WIFI_STA_SSID** and **HW_WIFI_STA_PASWWORD** and set the WiFi network SSID and password
-* all robotic arms' servos have been checked and replaced if malfunctioning
-* tested and working robotic arms: 13001, 13002, 13003 **CHECK**
-* robotic arms currenlty not working: 13004, 13005 --> check WiFi connectivity and/or OS installation
+* robotic arms' servos have been checked and replaced if malfunctioning
+* some of the robotic arms are not working properly, either the OS, wifi or something else **CHECK**

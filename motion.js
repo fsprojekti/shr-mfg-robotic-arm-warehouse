@@ -3,16 +3,16 @@ import {createRequire} from "module";
 const require = createRequire(import.meta.url);
 const axios = require("axios").default;
 let Promise = require("es6-promise").Promise;
-const config = require("./config/config.json");
 
-//Warehouse
 import {warehouse} from "./index.js";
-import {getCenterPy, offsetToll} from "./visual.js";
+import {getCenterPy} from "./visual.js";
+
+const config = require("./config/config.json");
 
 // add timestamps in front of all log messages
 require('console-stamp')(console, '[HH:MM:ss.l]');
 
-// calculate how much time should a move take
+// calculate how much time should a moveTo (absolute move) take
 async function calculateMoveToDuration(startLocation, endLocation) {
     let duration = config.moveToDurationDefault;
     if (startLocation === "receiveBuffer" && endLocation === "storageDock1")
@@ -38,7 +38,6 @@ async function calculateMoveToDuration(startLocation, endLocation) {
     }
     return duration;
 }
-
 // calculate how much time should we wait for the robot arm to finish a move
 async function calculateSetTimeoutTime(endLocation) {
 
@@ -152,34 +151,66 @@ async function getEndLocationCoordinates(endLocation) {
         coordinates.x = config.storageDock1Location.x;
         coordinates.y = config.storageDock1Location.y;
         coordinates.z = config.storageDock1Location.z;
+    } else if (endLocation === "storageDock1Camera") {
+        coordinates.x = config.storageDock1LocationCamera.x;
+        coordinates.y = config.storageDock1LocationCamera.y;
+        coordinates.z = config.storageDock1LocationCamera.z;
     } else if (endLocation === "storageDock2") {
         coordinates.x = config.storageDock2Location.x;
         coordinates.y = config.storageDock2Location.y;
         coordinates.z = config.storageDock2Location.z;
+    } else if (endLocation === "storageDock2Camera") {
+        coordinates.x = config.storageDock2LocationCamera.x;
+        coordinates.y = config.storageDock2LocationCamera.y;
+        coordinates.z = config.storageDock2LocationCamera.z;
     } else if (endLocation === "storageDock3") {
         coordinates.x = config.storageDock3Location.x;
         coordinates.y = config.storageDock3Location.y;
         coordinates.z = config.storageDock3Location.z;
+    } else if (endLocation === "storageDock3Camera") {
+        coordinates.x = config.storageDock3LocationCamera.x;
+        coordinates.y = config.storageDock3LocationCamera.y;
+        coordinates.z = config.storageDock3LocationCamera.z;
     } else if (endLocation === "storageDock4") {
         coordinates.x = config.storageDock4Location.x;
         coordinates.y = config.storageDock4Location.y;
         coordinates.z = config.storageDock4Location.z;
+    } else if (endLocation === "storageDock4Camera") {
+        coordinates.x = config.storageDock4LocationCamera.x;
+        coordinates.y = config.storageDock4LocationCamera.y;
+        coordinates.z = config.storageDock4LocationCamera.z;
     } else if (endLocation === "receiveBuffer") {
         coordinates.x = config.receiveBufferLocation.x;
         coordinates.y = config.receiveBufferLocation.y;
         coordinates.z = config.receiveBufferLocation.z;
+    } else if (endLocation === "receiveBufferCamera") {
+        coordinates.x = config.receiveBufferLocationCamera.x;
+        coordinates.y = config.receiveBufferLocationCamera.y;
+        coordinates.z = config.receiveBufferLocationCamera.z;
     } else if (endLocation === "dispatchBuffer") {
         coordinates.x = config.dispatchBufferLocation.x;
         coordinates.y = config.dispatchBufferLocation.y;
         coordinates.z = config.dispatchBufferLocation.z;
+    } else if (endLocation === "dispatchBufferCamera") {
+        coordinates.x = config.dispatchBufferLocationCamera.x;
+        coordinates.y = config.dispatchBufferLocationCamera.y;
+        coordinates.z = config.dispatchBufferLocationCamera.z;
     } else if (endLocation === "receiveDock") {
         coordinates.x = config.receiveDockLocation.x;
         coordinates.y = config.receiveDockLocation.y;
         coordinates.z = config.receiveDockLocation.z;
+    } else if (endLocation === "receiveDockCamera") {
+        coordinates.x = config.receiveDockLocationCamera.x;
+        coordinates.y = config.receiveDockLocationCamera.y;
+        coordinates.z = config.receiveDockLocationCamera.z;
     } else if (endLocation === "dispatchDock") {
         coordinates.x = config.dispatchDockLocation.x;
         coordinates.y = config.dispatchDockLocation.y;
         coordinates.z = config.dispatchDockLocation.z;
+    } else if (endLocation === "dispatchDockCamera") {
+        coordinates.x = config.dispatchDockLocationCamera.x;
+        coordinates.y = config.dispatchDockLocationCamera.y;
+        coordinates.z = config.dispatchDockLocationCamera.z;
     }
 
     console.log("end location coordinates:" + coordinates.x + ", " + coordinates.y + ", " + coordinates.z);
@@ -187,6 +218,7 @@ async function getEndLocationCoordinates(endLocation) {
     return coordinates;
 }
 
+// make an absolute move on the XY plane
 async function go(startLocation, endLocation) {
 
     // duration of the move operation
@@ -195,7 +227,7 @@ async function go(startLocation, endLocation) {
     // set time to wait for the robot arm to finish the move (depends on the current location of the robot arm)
     let setTimeoutTime = await calculateSetTimeoutTime(endLocation);
 
-    // end location coordinates
+    // get end location coordinates
     let endLocationCoordinates = await getEndLocationCoordinates(endLocation);
 
     try {
@@ -225,20 +257,31 @@ async function go(startLocation, endLocation) {
     }
 }
 
-// move down above the package and turn the suction on
-async function suctionON(packageIndex, locationX, locationY, locationZ) {
+// move down to the package, turn the suction on and move back up
+async function suctionON(packageIndex, locationX, locationY) {
 
-    let dx1, dy1, dx2, dy2;
+    let dx1, dy1, dx2, dy2, dx3, dy3;
     let newLocationX, newLocationY;
     let package_id;
 
-    try {
-        console.log("doing goDown() to tag detection height");
-        await goDown(-1, locationX, locationY);
+    let locationZ;
+    // determine the Z axis location
+    // 5: a move to the robot car
+    // in other cases the Z coordinate is retrieved from config
+    if (packageIndex === 5)
+        locationZ = config.moveDownZCar;
+    // else if (packageIndex === -1)
+    //     locationZ = config.moveDownTagDetectionHeightLoad;
+    else
+        locationZ = config.moveDownZ[packageIndex];
 
-        // if (center) {
+    try {
+        // go down to a tag detection height: this is a safe distance above the actual package location
+        console.log("doing goDown() to a tag detection height");
+        await goXYZ(locationX, locationY, locationZ + config.moveDownSafeDistance);
+
         // get center of the april tag and move to correct the position
-        console.log("suctionON(): getting package center ...");
+        console.log("suctionON(): getting package center, 1s tim ...");
         await getCenterPy().then((data) => {
             dx1 = data.x
             dy1 = data.y
@@ -246,16 +289,36 @@ async function suctionON(packageIndex, locationX, locationY, locationZ) {
         });
         console.log("package center: ");
         console.log(dx1 + ", " + dy1)
-        console.log("relative move to correct the position of the robot arm ...");
 
+        console.log("relative move to correct the position of the robot arm ...");
         newLocationX = locationX + dx1;
         newLocationY = locationY + dy1;
+        await goXYZ(newLocationX, newLocationY, locationZ + config.moveDownSafeDistance);
 
-        await goXY(newLocationX, newLocationY, config.moveDownTagDetectionHeight);
+        // because moves are not 100% accurate we repeat the correction
+        await getCenterPy().then((data) => {
+            dx3 = data.x
+            dy3 = data.y
+            package_id = data.id
+        });
+        console.log("package center 2nd time: ");
+        console.log(dx3 + ", " + dy3)
 
-        //offset suction and camera
+        console.log("relative move to correct the position of the robot arm ...");
+        newLocationX = newLocationX + dx3;
+        newLocationY = newLocationY + dy3;
+        await goXYZ(newLocationX, newLocationY, locationZ + config.moveDownSafeDistance);
+
+        // final check if the package is now in the center of the camera image
+        await getCenterPy().then((data) => {
+            dx3 = data.x
+            dy3 = data.y
+            package_id = data.id
+        });
+
+        // move to consider offset between the suction cup and the camera
         console.log("move robotic arm to consider the offset between the camera and the suction cup ...");
-        await offsetToll().then((data) => {
+        await moveOffset(locationZ + config.moveDownSafeDistance).then((data) => {
             dx2 = data.x
             dy2 = data.y
         });
@@ -263,14 +326,15 @@ async function suctionON(packageIndex, locationX, locationY, locationZ) {
         newLocationX = newLocationX + dx2;
         newLocationY = newLocationY + dy2;
 
+        // go down and turn the suction on
         console.log("doing goDown()");
         console.log("location index: " + packageIndex);
-        await goDown(packageIndex, newLocationX, newLocationY);
-
+        await goDown(newLocationX, newLocationY, packageIndex);
         await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/suction", {
             params: {msg: {data: true}},
         });
 
+        // go up to the default height
         console.log("doing goUp()");
         await goUp(packageIndex, newLocationX, newLocationY);
 
@@ -286,8 +350,8 @@ async function suctionON(packageIndex, locationX, locationY, locationZ) {
     }
 }
 
-// turn the suction off and move up
-async function suctionOFF(packageIndex, locationX, locationY, locationZ, mode) {
+// move down, turn the suction off and move back up
+async function suctionOFF(packageIndex, locationX, locationY, mode) {
 
     let dx1, dy1, dx2, dy2;
     let newLocationX, newLocationY;
@@ -295,8 +359,8 @@ async function suctionOFF(packageIndex, locationX, locationY, locationZ, mode) {
     try {
         if(mode === "unload") {
 
-            console.log("doing goDown() to tag detection height");
-            await goDown(-1, locationX, locationY);
+            console.log("doing goDown() to a tag detection height");
+            await goDown(locationX, locationY, 5, "suctionOFF");
 
             // get center of the april tag and move to correct the position
             console.log("suctionOFF(): getting package center ...");
@@ -311,11 +375,11 @@ async function suctionOFF(packageIndex, locationX, locationY, locationZ, mode) {
             newLocationX = locationX + dx1;
             newLocationY = locationY + dy1;
 
-            await goXY(newLocationX, newLocationY, config.moveDownTagDetectionHeight);
+            await goXYZ(newLocationX, newLocationY, config.moveDownZCar + config.moveDownSafeDistance);
 
-            //offset suction and camera
+            //offset between suction and camera
             console.log("move robotic arm to consider the offset between the camera and the suction cup ...");
-            await offsetToll().then((data) => {
+            await moveOffset(config.moveDownZCar + config.moveDownSafeDistance).then((data) => {
                 dx2 = data.x
                 dy2 = data.y
             });
@@ -328,13 +392,14 @@ async function suctionOFF(packageIndex, locationX, locationY, locationZ, mode) {
             newLocationY = locationY;
         }
 
+        // go down and turn the suction off
         console.log("doing goDown()");
         console.log("location index: " + packageIndex);
-        await goDown(packageIndex, newLocationX, newLocationY);
-
+        await goDown(newLocationX, newLocationY, packageIndex, "suctionOFF");
         await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/suction", {
             params: {msg: {data: false}},
         });
+        // move back up to the default height
         console.log("doing goUp()");
         await goUp(packageIndex, newLocationX, newLocationY);
 
@@ -351,8 +416,9 @@ async function suctionOFF(packageIndex, locationX, locationY, locationZ, mode) {
     }
 }
 
-// move down above the package
-async function goDown(packageIndex, locationX, locationY) {
+// move down to the package
+// if this is part of the unload task, the robot moves to a safe distance above the package
+async function goDown(locationX, locationY, packageIndex, mode) {
 
     try {
 
@@ -361,14 +427,17 @@ async function goDown(packageIndex, locationX, locationY) {
         if (packageIndex === 5)
             locationZ = config.moveDownZCar;
         else if (packageIndex === -1)
-            locationZ = config.moveDownTagDetectionHeight;
+            locationZ = config.moveDownTagDetectionHeightLoad;
         else
             locationZ = config.moveDownZ[packageIndex];
 
-        let moveDuration = config.moveDurationDefault;
+        if (packageIndex !== -1 && mode === "suctionOFF")
+            locationZ += config.moveDownSafeDistance/2;
+
+        let moveToDuration = config.moveToDurationDefault;
 
         await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
-            params: {msg: {x: locationX, y: locationY, z: locationZ, duration: moveDuration}},
+            params: {msg: {x: locationX, y: locationY, z: locationZ, duration: moveToDuration}},
         });
         return new Promise((resolve) => {
             setTimeout(() => {
@@ -385,17 +454,17 @@ async function goDown(packageIndex, locationX, locationY) {
     }
 }
 
-// go up to a "save" location
+// go up to a default location
 async function goUp(packageIndex, locationX, locationY) {
 
     try {
         let locationZ = config.moveUpZDefault;
 
         // duration of the move is dependent on the end position index; this is crucial to prevent fast movements
-        let moveDuration = config.moveDurationDefault;
+        let moveToDuration = config.moveToDurationDefault;
 
         await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
-            params: {msg: {x: locationX, y: locationY, z: locationZ, duration: moveDuration}},
+            params: {msg: {x: locationX, y: locationY, z: locationZ, duration: moveToDuration}},
         });
 
         return new Promise((resolve) => {
@@ -414,7 +483,8 @@ async function goUp(packageIndex, locationX, locationY) {
 }
 
 // the move to correct the position of the robotic arm to the center of the april tag
-async function goXY(x, y, z) {
+// this is an absolute move on all 3 axis simultaneously
+async function goXYZ(x, y, z) {
 
     try {
         await axios.get("http://" + config.roboticArmIpAddress + ":" + config.roboticArmHttpServerPort + "/basic/moveTo", {
@@ -436,7 +506,29 @@ async function goXY(x, y, z) {
     }
 }
 
-// call API getState
+// move robot arm to consider the offset between the camera and the suction cup
+// this move is made on XY plane
+const moveOffset = async (locationZ) => {
+    let current_x, current_y, o;
+    let response = await getState();
+    current_x = response.x
+    current_y = response.y
+    console.log("getState() inside offsetToll finished");
+    o = Math.atan2(current_y, current_x);
+    console.log("o: " + o)
+    console.log("middleware angle", o * 180 / Math.PI);
+    let dx = Math.cos(o) * 43;
+    let dy = Math.sin(o) * 43;
+    let d = {
+        x: dx,
+        y: dy
+    }
+    await goXYZ(current_x + dx, current_y + dy, locationZ);
+
+    return d;
+}
+
+// call API getState and retrieve current state of the robotic arm
 async function getState() {
     // call /basic/state API endpoint
     try {
@@ -455,7 +547,7 @@ async function getState() {
 export {
     go,
     // goDown,
-    goXY,
+    goXYZ,
     suctionOFF,
     suctionON,
     getState

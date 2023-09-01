@@ -7,7 +7,6 @@ const fs = require("fs");
 import {Dock} from "./queue.js";
 
 export class Warehouse {
-
     constructor() {
         this.location = "reset";
         this.queueStorageDock1 = new Dock();
