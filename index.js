@@ -7,7 +7,7 @@ const app = express();
 const config = require('./config/config.json');
 
 import {Warehouse} from "./warehouse.js";
-import {processTask, checkReceiveBuffer} from "./task.js";
+import {processTask, checkReceiveBuffer, checkPackages} from "./task.js";
 
 // add timestamps in front of all log messages
 require('console-stamp')(console, '[HH:MM:ss.l]');
@@ -70,11 +70,16 @@ app.get('/dispatch', function (req, res) {
         let offerId = req.query.offerId;
         let mode = req.query.mode;
 
+
         // create a request object and add it to the queue
         let reqObject = {}
         reqObject.offerId = offerId;
         reqObject.packageId = packageId;
         reqObject.mode = mode;
+        // if the mode is load, store the current timestamp --> this will be used to check if the package is within the allowed time to stay in the warehouse
+        if (mode === "load") {
+            reqObject.storageTimeLimit = Date.now();
+        }
         let queueIndex = tasksQueue.push(reqObject);
 
         console.log("Current tasks queue:" + JSON.stringify(tasksQueue));
@@ -133,7 +138,7 @@ setInterval(async function () {
 // periodically check the reception buffer and generate a move task if the size of the buffer exceeds the threshold set in the config
 setInterval(function () {
     checkReceiveBuffer();
-
+    checkPackages();
 }, 3000);
 
 export {

@@ -4,7 +4,7 @@ const require = createRequire(import.meta.url);
 const fs = require("fs");
 
 //QUEUES
-import {Dock} from "./queue.js";
+import {Dock} from "./dock.js";
 
 export class Warehouse {
     constructor() {

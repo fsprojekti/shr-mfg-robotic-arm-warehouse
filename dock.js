@@ -27,11 +27,6 @@ export class Dock {
         }
     }
 
-    //
-    // peek() {
-    //     return this.items[0];
-    // }
-
     getSize() {
         return this.items.length;
     }

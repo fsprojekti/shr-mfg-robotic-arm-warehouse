@@ -9,6 +9,7 @@ const {Promise} = pkg
 import {warehouse, tasksQueue, setBusy} from "./index.js";
 import {go, suctionON, suctionOFF} from "./motion.js";
 import {findNewLocation} from "./relocation.js"
+import {Package} from "./package.js";
 
 const config = require('./config/config.json');
 
@@ -16,7 +17,7 @@ const config = require('./config/config.json');
 require('console-stamp')(console, '[HH:MM:ss.l]');
 
 // load a package from the reception dock to the reception buffer
-async function load(packageId, receiveBufferIndex) {
+async function load(packageId, storageTimeLimit, receiveBufferIndex) {
 
     try {
         // move from last position to the reset position (in case the previous run of the program ended unexpectedly)
@@ -32,7 +33,7 @@ async function load(packageId, receiveBufferIndex) {
         await suctionOFF(receiveBufferIndex, config.receiveBufferLocation.x, config.receiveBufferLocation.y, config.receiveBufferLocation.z);
 
         // put the package to the reception buffer queue
-        warehouse.queueReceiveBuffer.enqueue(packageId);
+        warehouse.queueReceiveBuffer.enqueue(new Package(packageId, storageTimeLimit));
         // print the current state of the warehouse to the console and also save the date to the JSON file
         await warehouse.stateWarehouse();
         await warehouse.saveWarehouse();
@@ -203,19 +204,32 @@ async function move(startLocation, packageIndex) {
         // packageIndex is the index of the package in the start location dock
         await suctionON(packageIndex, suctionONx, suctionONy);
 
+        let pack;
         // remove the package from the start location queue
-        if (startLocation === "storageDock1Camera")
+        if (startLocation === "storageDock1Camera") {
+            pack = warehouse.queueStorageDock1.items[warehouse.queueStorageDock1.topIndex];
             warehouse.queueStorageDock1.dequeue();
-        else if (startLocation === "storageDock2Camera")
+        }
+        else if (startLocation === "storageDock2Camera") {
+            pack = warehouse.queueStorageDock2.items[warehouse.queueStorageDock2.topIndex];
             warehouse.queueStorageDock2.dequeue();
-        else if (startLocation === "storageDock3Camera")
+        }
+        else if (startLocation === "storageDock3Camera") {
+            pack = warehouse.queueStorageDock3.items[warehouse.queueStorageDock3.topIndex];
             warehouse.queueStorageDock3.dequeue();
-        else if (startLocation === "storageDock4Camera")
+        }
+        else if (startLocation === "storageDock4Camera") {
+            pack = warehouse.queueStorageDock4.items[warehouse.queueStorageDock4.topIndex];
             warehouse.queueStorageDock4.dequeue();
-        else if (startLocation === "receiveBufferCamera")
+        }
+        else if (startLocation === "receiveBufferCamera") {
+            pack = warehouse.queueReceiveBuffer.items[warehouse.queueReceiveBuffer.topIndex];
             warehouse.queueReceiveBuffer.dequeue();
-        warehouse.queueDispatchBuffer.dequeue();
-
+        }
+        else if (startLocation === "dispatchBufferCamera") {
+            pack = warehouse.queueDispatchBuffer.items[warehouse.queueDispatchBuffer.topIndex];
+            warehouse.queueDispatchBuffer.dequeue();
+        }
         // print the state of the warehouse to the console and also save the data to the JSON file
         await warehouse.stateWarehouse();
         await warehouse.saveWarehouse();
@@ -230,7 +244,7 @@ async function move(startLocation, packageIndex) {
             suctionOFFy = config.storageDock1Location.y;
             console.log("doing suctionOFF()");
             await suctionOFF(warehouse.queueStorageDock1.topIndex + 1, suctionOFFx, suctionOFFy);
-            warehouse.queueStorageDock1.enqueue(packageId);
+            warehouse.queueStorageDock1.enqueue(pack);
         } else if (newLocation === "storageDock2") {
             console.log("doing goStorageDock2()");
             await go(startLocation, newLocation);
@@ -238,7 +252,7 @@ async function move(startLocation, packageIndex) {
             suctionOFFy = config.storageDock2Location.y;
             console.log("doing suctionOFF()");
             await suctionOFF(warehouse.queueStorageDock2.topIndex + 1, suctionOFFx, suctionOFFy);
-            warehouse.queueStorageDock2.enqueue(packageId);
+            warehouse.queueStorageDock2.enqueue(pack);
         } else if (newLocation === "storageDock3") {
             console.log("doing goStorageDock3()");
             await go(startLocation, newLocation);
@@ -246,7 +260,7 @@ async function move(startLocation, packageIndex) {
             suctionOFFy = config.storageDock3Location.y;
             console.log("doing suctionOFF()");
             await suctionOFF(warehouse.queueStorageDock3.topIndex + 1, suctionOFFx, suctionOFFy);
-            warehouse.queueStorageDock3.enqueue(packageId);
+            warehouse.queueStorageDock3.enqueue(pack);
         } else if (newLocation === "storageDock4") {
             console.log("doing goStorageDock4()");
             await go(startLocation, newLocation);
@@ -254,7 +268,7 @@ async function move(startLocation, packageIndex) {
             suctionOFFy = config.storageDock4Location.y;
             console.log("doing suctionOFF()");
             await suctionOFF(warehouse.queueStorageDock4.topIndex + 1, suctionOFFx, suctionOFFy);
-            warehouse.queueStorageDock4.enqueue(packageId);
+            warehouse.queueStorageDock4.enqueue(pack);
         } else if (newLocation === "receiveBuffer") {
             console.log("doing receiveBuffer()");
             await go(startLocation, newLocation);
@@ -262,7 +276,7 @@ async function move(startLocation, packageIndex) {
             suctionOFFy = config.receiveBufferLocation.y;
             console.log("doing suctionOFF()");
             await suctionOFF(warehouse.queueReceiveBuffer.topIndex + 1, suctionOFFx, suctionOFFy);
-            warehouse.queueReceiveBuffer.enqueue(packageId);
+            warehouse.queueReceiveBuffer.enqueue(pack);
         } else if (newLocation === "dispatchBuffer") {
             console.log("doing dispatchBuffer()");
             await go(startLocation, newLocation);
@@ -270,7 +284,7 @@ async function move(startLocation, packageIndex) {
             suctionOFFy = config.dispatchBufferLocation.y;
             console.log("doing suctionOFF()");
             await suctionOFF(warehouse.queueDispatchBuffer.topIndex + 1, suctionOFFx, suctionOFFy);
-            warehouse.queueDispatchBuffer.enqueue(packageId);
+            warehouse.queueDispatchBuffer.enqueue(pack);
         }
 
         // print the state of the warehouse to the console and also save the data to the JSON file
@@ -305,7 +319,7 @@ async function processTask(task) {
         // receive buffer is not full, proceed with the load task
         else {
             console.log("calling the load() task...");
-            let loadPromise = load(task.packageId, warehouse.queueReceiveBuffer.topIndex + 1);
+            let loadPromise = load(task.packageId, task.storageTimeLimit, warehouse.queueReceiveBuffer.topIndex + 1);
             loadPromise.then(
                 (data) => {
                     console.log(data);
@@ -572,22 +586,23 @@ async function processTask(task) {
 function checkReceiveBuffer() {
 
     let receiveCounter = 0;
-    // console.log("doing checkReceiveBuffer ...");
+    console.log("checking receive buffer  ...");
     // console.log(warehouse);
     let i;
     for (i = warehouse.queueReceiveBuffer.getSize(); i > config.maxReceiveBufferSizeForMove; i--) {
 
         // check if a task with this packageId and packageDock === receiveBuffer and dockPosition === (i-1)
         //      is already in the queue
-        if (tasksQueue.find(task => task.packageId = warehouse.queueReceiveBuffer.items[i - 1] &&
+        if (tasksQueue.find(task => task.packageId === warehouse.queueReceiveBuffer.items[i - 1].packageId &&
             task.packageDock === "receiveBufferCamera" &&
             task.dockPosition === (i - 1)) !== undefined) {
             console.log("a move task for this packageId is already in the queue");
         } else {
             // create a request object for package in position 3 (index === 2) and add it to the queue
+            console.log(warehouse.queueReceiveBuffer.items[i - 1]);
             let reqObject = {}
             reqObject.offerId = "internal-move";
-            reqObject.packageId = warehouse.queueReceiveBuffer.items[i - 1];
+            reqObject.packageId = warehouse.queueReceiveBuffer.items[i - 1].packageId;
             reqObject.packageDock = "receiveBufferCamera";
             reqObject.dockPosition = i - 1;
             reqObject.mode = "move";
@@ -595,6 +610,7 @@ function checkReceiveBuffer() {
             receiveCounter++;
         }
     }
+    console.log("there are no packages to move from receive buffer");
 
     if (receiveCounter !== 0) {
         console.log(receiveCounter + " moves from receiveBuffer added to the tasksQueue");
@@ -610,7 +626,7 @@ function checkDispatchBuffer() {
     for (i = warehouse.queueDispatchBuffer.getSize(); i > config.maxDispatchBufferSizeForMove; i--) {
         // check if a task with this packageId and packageDock === dispatchBuffer and dockPosition === (i-1)
         //      is already in the queue
-        if (tasksQueue.find(task => task.packageId = warehouse.queueDispatchBuffer.items[i - 1] &&
+        if (tasksQueue.find(task => task.packageId === warehouse.queueDispatchBuffer.items[i - 1].packageId &&
             task.packageDock === "receiveBuffer" &&
             task.dockPosition === (i - 1)) !== undefined) {
 
@@ -619,7 +635,7 @@ function checkDispatchBuffer() {
             // create a request object for package in position 3 (index === 2) and add it to the queue
             let reqObject = {}
             reqObject.offerId = "internal-move";
-            reqObject.packageId = warehouse.queueDispatchBuffer.items[i - 1];
+            reqObject.packageId = warehouse.queueDispatchBuffer.items[i - 1].packageId;
             reqObject.packageDock = "dispatchBufferCamera";
             reqObject.dockPosition = i - 1;
             reqObject.mode = "move";
@@ -633,8 +649,155 @@ function checkDispatchBuffer() {
     }
 }
 
+// check if any of the package's storage time limit has expired
+// if yes, generate a request and send it to the car control application
+function checkPackages() {
+
+    console.log("checking packages' storage time limits  ...");
+    // console.log(warehouse);
+
+    let currentTime = Date.now();
+    let packageId = -1;
+    let sourceLocation = 5; // current location = master warehouse
+    let targetLocation = 5; // master warehouse location
+    let offerId = -999;
+
+    for (let i = 0; i < warehouse.queueStorageDock1.items.length; i ++ ) {
+        if (warehouse.queueStorageDock1.items[i].storageTimeLimit + 5*60*1000 > currentTime) {
+            console.log("storage time limit for package " + warehouse.queueStorageDock1.items[i].packageId + " has expired. The package will be removed from the warehouse.");
+            packageId = warehouse.queueStorageDock1.items[i].packageId;
+
+            // send HTTP GET to the robot cars control app /request API endpoint
+            let axiosPromise = axios.get("http://" + config.controlAppUrl + "/request", {
+                params: {packageId: packageId, offerId: offerId, source: sourceLocation, target: targetLocation},
+            });
+            axiosPromise.then(
+                (data) => {
+                    console.log(data);
+                    console.log("/request successfully called")
+                },
+                (error) => {
+                    console.log("error calling control app");
+                    console.log(error);
+                }
+            )
+        }
+    }
+    for (let i = 0; i < warehouse.queueStorageDock2.items.length; i ++ ) {
+        if (warehouse.queueStorageDock2.items[i].storageTimeLimit + 5*60*1000 < currentTime) {
+            console.log("storage time limit for package " + warehouse.queueStorageDock2.items[i].packageId + " has expired. The package will be removed from the warehouse.");
+            packageId = warehouse.queueStorageDock2.items[i].packageId;
+
+            // send HTTP GET to the robot cars control app /request API endpoint
+            let axiosPromise = axios.get("http://" + config.controlAppUrl + "/request", {
+                params: {packageId: packageId, offerId: offerId, source: sourceLocation, target: targetLocation},
+            });
+            axiosPromise.then(
+                (data) => {
+                    console.log(data);
+                    console.log("/request successfully called")
+                },
+                (error) => {
+                    console.log("error calling control app");
+                    console.log(error);
+                }
+            )
+        }
+    }
+    for (let i = 0; i < warehouse.queueStorageDock3.items.length; i ++ ) {
+        if (warehouse.queueStorageDock3.items[i].storageTimeLimit + 5*60*1000 < currentTime) {
+            console.log("storage time limit for package " + warehouse.queueStorageDock3.items[i].packageId + " has expired. The package will be removed from the warehouse.");
+            packageId = warehouse.queueStorageDock3.items[i].packageId;
+
+            // send HTTP GET to the robot cars control app /request API endpoint
+            let axiosPromise = axios.get("http://" + config.controlAppUrl + "/request", {
+                params: {packageId: packageId, offerId: offerId, source: sourceLocation, target: targetLocation},
+            });
+            axiosPromise.then(
+                (data) => {
+                    console.log(data);
+                    console.log("/request successfully called")
+                },
+                (error) => {
+                    console.log("error calling control app");
+                    console.log(error);
+                }
+            )
+        }
+    }
+    for (let i = 0; i < warehouse.queueStorageDock4.items.length; i ++ ) {
+        if (warehouse.queueStorageDock4.items[i].storageTimeLimit + 5*60*1000 < currentTime) {
+            console.log("storage time limit for package " + warehouse.queueStorageDock4.items[i].packageId + " has expired. The package will be removed from the warehouse.");
+            packageId = warehouse.queueStorageDock4.items[i].packageId;
+
+            // send HTTP GET to the robot cars control app /request API endpoint
+            let axiosPromise = axios.get("http://" + config.controlAppUrl + "/request", {
+                params: {packageId: packageId, offerId: offerId, source: sourceLocation, target: targetLocation},
+            });
+            axiosPromise.then(
+                (data) => {
+                    console.log(data);
+                    console.log("/request successfully called")
+                },
+                (error) => {
+                    console.log("error calling control app");
+                    console.log(error);
+                }
+            )
+        }
+    }
+    for (let i = 0; i < warehouse.queueReceiveBuffer.items.length; i ++ ) {
+        if (warehouse.queueReceiveBuffer.items[i].storageTimeLimit + 5*60*1000 < currentTime) {
+            console.log("storage time limit for package " + warehouse.queueReceiveBuffer.items[i].packageId + " has expired. The package will be removed from the warehouse.");
+            packageId = warehouse.queueReceiveBuffer.items[i].packageId;
+
+            // send HTTP GET to the robot cars control app /request API endpoint
+            let axiosPromise = axios.get("http://" + config.controlAppUrl + "/request", {
+                params: {packageId: packageId, offerId: offerId, source: sourceLocation, target: targetLocation},
+            });
+            axiosPromise.then(
+                (data) => {
+                    console.log(data);
+                    console.log("/request successfully called")
+                },
+                (error) => {
+                    console.log("error calling control app");
+                    console.log(error);
+                }
+            )
+        }
+    }
+    for (let i = 0; i < warehouse.queueDispatchBuffer.items.length; i ++ ) {
+        if (warehouse.queueDispatchBuffer.items[i].storageTimeLimit + 5*60*1000 < currentTime) {
+            console.log("storage time limit for package " + warehouse.queueDispatchBuffer.items[i].packageId + " has expired. The package will be removed from the warehouse.");
+            packageId = warehouse.queueDispatchBuffer.items[i].packageId;
+
+            // send HTTP GET to the robot cars control app /request API endpoint
+            let axiosPromise = axios.get("http://" + config.controlAppUrl + "/request", {
+                params: {packageId: packageId, offerId: offerId, source: sourceLocation, target: targetLocation},
+            });
+            axiosPromise.then(
+                (data) => {
+                    console.log(data);
+                    console.log("/request successfully called")
+                },
+                (error) => {
+                    console.log("error calling control app");
+                    console.log(error);
+                }
+            )
+        }
+    }
+
+    if(packageId !== -1) {
+
+
+    }
+}
+
 export {
     processTask,
     checkReceiveBuffer,
-    checkDispatchBuffer
+    checkDispatchBuffer,
+    checkPackages
 }
