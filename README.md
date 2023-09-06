@@ -1,6 +1,6 @@
 # Robot arm Warehouse
 
-This README file provides documentation for the warehouse application utilized in the 2022/2023 Summer School on Industrial Internet of Things (IIoT) and Blockchain Technology. For information regarding the warehouse application used for the 2022 internship practical assignment involving two French students, please refer to the subfolder /FRA-internship-2022.
+This README file provides documentation for the warehouse application utilized in the 2023 Summer School on Industrial Internet of Things (IIoT) and Blockchain Technology. For information regarding the warehouse application used for the 2022 internship practical assignment involving two French students, please refer to the subfolder /FRA-internship-2022.
 
 ## Layout
 The robot arm in this application serves as a versatile package manipulation device. It can be configured to simulate various types of manufacturing and supply chain facilities. One such configuration allows it to represent a warehouse facility responsible for the storage of packages. The layout of this simulated warehouse is illustrated in the following figure:
@@ -9,15 +9,15 @@ The robot arm in this application serves as a versatile package manipulation dev
 * **operational area**
 Robot arm movement is limited by the operational area which is a rectangularly shaped surface. 
 * **dock**
-Dock represents a position inside the operational area that is reserved for a placement of packages. There are five types of docks: receive dock, receive buffer dock, dispatch dock, dispatch buffer dock and storage dock
-	* **receive dock / dispatch dock**
-This type of dock is reserved for transportation vehicles for loading or unloading of their cargo (packages) 
-	* **receive buffer dock**
-This type of dock is reserved as an intermediate buffer storage during the unloading of transportation vehicles
+Dock represents a position inside the operational area that is reserved for a placement of packages. There are five types of docks: receiving dock, receiving buffer dock, dispatch dock, dispatch buffer dock and storage dock.
+	* **receiving dock / dispatch dock**
+This type of dock is reserved for transportation vehicles for loading or unloading of their cargo (packages) .
+	* **receiving buffer dock**
+This type of dock is reserved as an intermediate buffer storage during the unloading of transportation vehicles.
 	* **dispatch buffer dock**
-This type of dock is reserved as an intermediate buffer storage during loading to transportation vehicles
+This type of dock is reserved as an intermediate buffer storage during loading to transportation vehicles.
 	* **storage dock** 
-This type of dock is used for storing packages 
+This type of dock is used for storing packages .
 
 ## Package management process
 
@@ -90,16 +90,16 @@ There are several types of tasks, each with its own specific functionality:
 	* Unloading tasks are performed directly to the dispatch dock (robot car), bypassing the dispatch buffer entirely.
 	* Move speeds for the /move command are set in the configuration, while move durations for the /moveTo command are calculated adaptively, based on the starting and finishing locations.
 	* To avoid overly rapid or slow movements, the setTimeout durations for the robotic arm commands are determined by the starting and finishing locations.
-	* Robotic arm employs camera recognition to identify packages using AprilTags and accurately position above the center of the package. This feature is used for loading the packages from the robot car and unloading to the car.
+	* Robotic arm now employs camera recognition to identify packages using AprilTags and accurately position above the center of the package. This feature is used for loading the packages from the robot car, reallocating packages withing the warehouse, and for unloading packages  to the car.
 	* Most of the application parameters are derived from the config.json file.
 
 ### State of the robotic arms before 2023 Summer School on IIoT and blockchain
 * operating system is burned to an SD card
-* only use OS image received by the robotic arm manufacturer which is adapted to the specific version of the robotic arm
+* use only the OS image provided by the robotic arm manufacturer, as it is tailored to the specific version of the robotic arm
 * by default, after the OS boots the HiWonder toolbox process sets up a WiFi hotspot to enable connections from other computers
 	* to connect the robotic arm to other WiFi networks, edit the following file:
 		* filename: /home/hiwonder/hiwonder_wifi_conf.py
 		* uncomment the line: **HW_WIFI_MODE** and set it to **2**
 		* uncomment the lines **HW_WIFI_STA_SSID** and **HW_WIFI_STA_PASWWORD** and set the WiFi network SSID and password
-* robotic arms' servos have been checked and replaced if malfunctioning
-* some of the robotic arms are not working properly, either the OS, wifi or something else **CHECK**
+* the servos of the robotic arms have been inspected and replaced if found defective
+* sme robotic arms are not functioning correctly – there might be issues with the OS, Wi-Fi, or another component**CHECK**
