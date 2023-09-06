@@ -38,6 +38,7 @@ async function calculateMoveToDuration(startLocation, endLocation) {
     }
     return duration;
 }
+
 // calculate how much time should we wait for the robot arm to finish a move
 async function calculateSetTimeoutTime(endLocation) {
 
@@ -270,7 +271,7 @@ async function suctionON(packageIndex, locationX, locationY) {
     // in other cases the Z coordinate is retrieved from config
     if (packageIndex === 5)
         locationZ = config.moveDownZCar;
-    // else if (packageIndex === -1)
+        // else if (packageIndex === -1)
     //     locationZ = config.moveDownTagDetectionHeightLoad;
     else
         locationZ = config.moveDownZ[packageIndex];
@@ -295,19 +296,24 @@ async function suctionON(packageIndex, locationX, locationY) {
         newLocationY = locationY + dy1;
         await goXYZ(newLocationX, newLocationY, locationZ + config.moveDownSafeDistance);
 
-        // because moves are not 100% accurate we repeat the correction
-        await getCenterPy().then((data) => {
-            dx3 = data.x
-            dy3 = data.y
-            package_id = data.id
-        });
-        console.log("package center 2nd time: ");
-        console.log(dx3 + ", " + dy3)
+        for (let i = 0; i < 5; i++) {
 
-        console.log("relative move to correct the position of the robot arm ...");
-        newLocationX = newLocationX + dx3;
-        newLocationY = newLocationY + dy3;
-        await goXYZ(newLocationX, newLocationY, locationZ + config.moveDownSafeDistance);
+
+            // because moves are not 100% accurate we repeat the correction
+            await getCenterPy().then((data) => {
+                dx3 = data.x
+                dy3 = data.y
+                package_id = data.id
+            });
+            console.log("package center 2nd time: ");
+            console.log(dx3 + ", " + dy3)
+
+            console.log("relative move to correct the position of the robot arm ...");
+            newLocationX = newLocationX + dx3;
+            newLocationY = newLocationY + dy3;
+            await goXYZ(newLocationX, newLocationY, locationZ + config.moveDownSafeDistance);
+
+        }
 
         // final check if the package is now in the center of the camera image
         await getCenterPy().then((data) => {
@@ -357,7 +363,7 @@ async function suctionOFF(packageIndex, locationX, locationY, mode) {
     let newLocationX, newLocationY;
 
     try {
-        if(mode === "unload") {
+        if (mode === "unload") {
 
             console.log("doing goDown() to a tag detection height");
             await goDown(locationX, locationY, 5, "suctionOFF");
@@ -432,7 +438,7 @@ async function goDown(locationX, locationY, packageIndex, mode) {
             locationZ = config.moveDownZ[packageIndex];
 
         if (packageIndex !== -1 && mode === "suctionOFF")
-            locationZ += config.moveDownSafeDistance/2;
+            locationZ += config.moveDownSafeDistance / 2;
 
         let moveToDuration = config.moveToDurationDefault;
 

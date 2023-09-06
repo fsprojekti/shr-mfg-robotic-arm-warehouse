@@ -663,8 +663,8 @@ function checkPackages() {
     let offerId = -999;
 
     for (let i = 0; i < warehouse.queueStorageDock1.items.length; i ++ ) {
-        if (warehouse.queueStorageDock1.items[i].storageTimeLimit + 5*60*1000 > currentTime) {
-            console.log("storage time limit for package " + warehouse.queueStorageDock1.items[i].packageId + " has expired. The package will be removed from the warehouse.");
+        if (warehouse.queueStorageDock1.items[i].storageTimeLimit + config.storageTimeLimitSeconds*1000 > currentTime) {
+            console.log("storage time limit for package " + warehouse.queueStorageDock1.items[i].packageId + " has expired, the package will be removed from the warehouse");
             packageId = warehouse.queueStorageDock1.items[i].packageId;
 
             // send HTTP GET to the robot cars control app /request API endpoint
@@ -673,19 +673,19 @@ function checkPackages() {
             });
             axiosPromise.then(
                 (data) => {
-                    console.log(data);
-                    console.log("/request successfully called")
+                    // console.log(data);
+                    console.log("/request API endpoint of the car control app successfully called to request a move for a package")
                 },
                 (error) => {
-                    console.log("error calling control app");
-                    console.log(error);
+                    console.log("error calling car control app");
+                    console.log(error.syscall + " " + error.code + " " + error.address + " " + error.port);
                 }
             )
         }
     }
     for (let i = 0; i < warehouse.queueStorageDock2.items.length; i ++ ) {
-        if (warehouse.queueStorageDock2.items[i].storageTimeLimit + 5*60*1000 < currentTime) {
-            console.log("storage time limit for package " + warehouse.queueStorageDock2.items[i].packageId + " has expired. The package will be removed from the warehouse.");
+        if (warehouse.queueStorageDock2.items[i].storageTimeLimit + config.storageTimeLimitSeconds*1000 < currentTime) {
+            console.log("storage time limit for package " + warehouse.queueStorageDock2.items[i].packageId + " has expired, the package will be removed from the warehouse");
             packageId = warehouse.queueStorageDock2.items[i].packageId;
 
             // send HTTP GET to the robot cars control app /request API endpoint
@@ -694,19 +694,19 @@ function checkPackages() {
             });
             axiosPromise.then(
                 (data) => {
-                    console.log(data);
-                    console.log("/request successfully called")
+                    // console.log(data);
+                    console.log("/request API endpoint of the car control app successfully called to request a move for a package")
                 },
                 (error) => {
-                    console.log("error calling control app");
-                    console.log(error);
+                    console.log("error calling car control app");
+                    console.log(error.syscall + " " + error.code + " " + error.address + " " + error.port);
                 }
             )
         }
     }
     for (let i = 0; i < warehouse.queueStorageDock3.items.length; i ++ ) {
-        if (warehouse.queueStorageDock3.items[i].storageTimeLimit + 5*60*1000 < currentTime) {
-            console.log("storage time limit for package " + warehouse.queueStorageDock3.items[i].packageId + " has expired. The package will be removed from the warehouse.");
+        if (warehouse.queueStorageDock3.items[i].storageTimeLimit + config.storageTimeLimitSeconds*1000 < currentTime) {
+            console.log("storage time limit for package " + warehouse.queueStorageDock3.items[i].packageId + " has expired, the package will be removed from the warehouse");
             packageId = warehouse.queueStorageDock3.items[i].packageId;
 
             // send HTTP GET to the robot cars control app /request API endpoint
@@ -715,19 +715,19 @@ function checkPackages() {
             });
             axiosPromise.then(
                 (data) => {
-                    console.log(data);
-                    console.log("/request successfully called")
+                    // console.log(data);
+                    console.log("/request API endpoint of the car control app successfully called to request a move for a package");
                 },
                 (error) => {
-                    console.log("error calling control app");
-                    console.log(error);
+                    console.log("error calling car control app");
+                    console.log(error.syscall + " " + error.code + " " + error.address + " " + error.port);
                 }
             )
         }
     }
     for (let i = 0; i < warehouse.queueStorageDock4.items.length; i ++ ) {
-        if (warehouse.queueStorageDock4.items[i].storageTimeLimit + 5*60*1000 < currentTime) {
-            console.log("storage time limit for package " + warehouse.queueStorageDock4.items[i].packageId + " has expired. The package will be removed from the warehouse.");
+        if (warehouse.queueStorageDock4.items[i].storageTimeLimit + config.storageTimeLimitSeconds*1000 < currentTime) {
+            console.log("storage time limit for package " + warehouse.queueStorageDock4.items[i].packageId + " has expired, the package will be removed from the warehouse");
             packageId = warehouse.queueStorageDock4.items[i].packageId;
 
             // send HTTP GET to the robot cars control app /request API endpoint
@@ -736,19 +736,19 @@ function checkPackages() {
             });
             axiosPromise.then(
                 (data) => {
-                    console.log(data);
-                    console.log("/request successfully called")
+                    // console.log(data);
+                    console.log("/request API endpoint of the car control app successfully called to request a move for a package");
                 },
                 (error) => {
-                    console.log("error calling control app");
-                    console.log(error);
+                    console.log("error calling car control app");
+                    console.log(error.syscall + " " + error.code + " " + error.address + " " + error.port);
                 }
             )
         }
     }
     for (let i = 0; i < warehouse.queueReceiveBuffer.items.length; i ++ ) {
-        if (warehouse.queueReceiveBuffer.items[i].storageTimeLimit + 5*60*1000 < currentTime) {
-            console.log("storage time limit for package " + warehouse.queueReceiveBuffer.items[i].packageId + " has expired. The package will be removed from the warehouse.");
+        if (warehouse.queueReceiveBuffer.items[i].storageTimeLimit + config.storageTimeLimitSeconds*1000 < currentTime) {
+            console.log("storage time limit for package " + warehouse.queueReceiveBuffer.items[i].packageId + " has expired, the package will be removed from the warehouse");
             packageId = warehouse.queueReceiveBuffer.items[i].packageId;
 
             // send HTTP GET to the robot cars control app /request API endpoint
@@ -757,19 +757,19 @@ function checkPackages() {
             });
             axiosPromise.then(
                 (data) => {
-                    console.log(data);
-                    console.log("/request successfully called")
+                    // console.log(data);
+                    console.log("/request API endpoint of the car control app successfully called to request a move for a package");
                 },
                 (error) => {
-                    console.log("error calling control app");
-                    console.log(error);
+                    console.log("error calling car control app");
+                    console.log(error.syscall + " " + error.code + " " + error.address + " " + error.port);
                 }
             )
         }
     }
     for (let i = 0; i < warehouse.queueDispatchBuffer.items.length; i ++ ) {
-        if (warehouse.queueDispatchBuffer.items[i].storageTimeLimit + 5*60*1000 < currentTime) {
-            console.log("storage time limit for package " + warehouse.queueDispatchBuffer.items[i].packageId + " has expired. The package will be removed from the warehouse.");
+        if (warehouse.queueDispatchBuffer.items[i].storageTimeLimit + config.storageTimeLimitSeconds*1000 < currentTime) {
+            console.log("storage time limit for package " + warehouse.queueDispatchBuffer.items[i].packageId + " has expired, the package will be removed from the warehouse");
             packageId = warehouse.queueDispatchBuffer.items[i].packageId;
 
             // send HTTP GET to the robot cars control app /request API endpoint
@@ -778,12 +778,12 @@ function checkPackages() {
             });
             axiosPromise.then(
                 (data) => {
-                    console.log(data);
-                    console.log("/request successfully called")
+                    // console.log(data);
+                    console.log("/request API endpoint of the car control app successfully called to request a move for a package");
                 },
                 (error) => {
-                    console.log("error calling control app");
-                    console.log(error);
+                    console.log("error calling car control app");
+                    console.log(error.syscall + " " + error.code + " " + error.address + " " + error.port);
                 }
             )
         }

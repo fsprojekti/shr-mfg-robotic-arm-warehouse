@@ -136,6 +136,7 @@ setInterval(async function () {
 );
 
 // periodically check the reception buffer and generate a move task if the size of the buffer exceeds the threshold set in the config
+// periodically check the storage time limit of packages and request a move if the storage time exceeds a pre-defined threshold set in the config
 setInterval(function () {
     checkReceiveBuffer();
     checkPackages();
