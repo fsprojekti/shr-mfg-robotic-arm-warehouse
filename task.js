@@ -660,7 +660,7 @@ function checkPackages() {
     let packageId = -1;
     let sourceLocation = 5; // current location = master warehouse
     let targetLocation = 5; // master warehouse location
-    let offerId = -999;
+    let offerId = Math.round(1000000*Math.random());
 
     for (let i = 0; i < warehouse.queueStorageDock1.items.length; i ++ ) {
         if (warehouse.queueStorageDock1.items[i].storageTimeLimit + config.storageTimeLimitSeconds*1000 > currentTime) {
