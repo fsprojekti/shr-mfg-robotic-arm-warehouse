@@ -1,9 +1,9 @@
 {
-  "roboticArmIpAddress": "192.168.137.237",
+  "roboticArmIpAddress": "192.168.0.105",
   "roboticArmHttpServerPort": 3000,
   "roboticArmRosServerPort": 8080,
   "nodejsPort": 3001,
-  "controlAppUrl": "localhost:3002",
+  "controlAppUrl": "192.168.0.102:3002",
   "dockSize": 4,
   "defaultHeight": 215,
   "resetLocation": {"x":  0, "y": -162.94, "z": 215},
