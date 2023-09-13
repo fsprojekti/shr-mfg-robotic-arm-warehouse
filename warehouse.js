@@ -17,6 +17,7 @@ export class Warehouse {
         this.queueStorageDock3 = new Dock();
         this.queueDispatchBuffer = new Dock();
         this.queueDispatchDock = new Dock();
+        this.status = "IDLE";
     }
 
     // print the current state of the warehouse to the console

@@ -61,7 +61,7 @@ async function unload(startLocation, packageIndex) {
         // move from last position to the reset position (in case the previous run of the program ended unexpectedly)
         await go("", "reset");
         // move to the starting position of the unload task
-        // NOTE: as the first part of this task relies on detection of the april tag, this movement is made relatively to the camera position
+        // NOTE: as the first part of this task depends on detection of the april tag, this movement is made relatively to the camera position
         if (startLocation === "storageDock1Camera") {
             await go("reset", startLocation);
             suctionONx = config.storageDock1LocationCamera.x;
@@ -166,7 +166,7 @@ async function move(startLocation, packageIndex) {
         console.log("doing goReset()");
         await go("", "reset");
         // move to the start location of the move task
-        // NOTE: as the first part of this task relies on detection of the april tag, this movement is made relatively to the camera position
+        // NOTE: as the first part of this task depends on detection of the april tag, this movement is made relatively to the camera position
         if (startLocation === "storageDock1Camera") {
             console.log("doing goStorageDock1()");
             await go("reset", startLocation);
@@ -315,6 +315,7 @@ async function processTask(task) {
         if (warehouse.queueReceiveBuffer.getSize() === 4) {
             console.log("error, receive buffer is full, load task not performed");
             setBusy(false);
+            warehouse.status = "IDLE";
         }
         // receive buffer is not full, proceed with the load task
         else {
@@ -331,30 +332,33 @@ async function processTask(task) {
                     // set the warehouse to not busy
                     setBusy(false);
                     // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
-                    // let axiosPromise = axios.get("http://" + config.controlAppUrl + "/dispatchFinished", {
-                    //     params: {offerId: tasksQueue[0].offerId},
-                    // });
-                    // axiosPromise.then(
-                    //     (data) => {
-                    //         console.log(data);
-                    //         console.log("/dispatchFinished successfully called, removing a task from the queue")
-                    //         tasksQueue.shift();
-                    //         console.log("tasks queue after load: " + JSON.stringify(tasksQueue));
-                    //         setBusy(false);
-                    //         // check if the reception buffer is too full and create a move task (or tasks)
-                    //         checkReceiveBuffer();
-                    //     },
-                    //     (error) => {
-                    //         console.log("error calling control app, task remains in the queue");
-                    //         console.log(error);
-                    //         setBusy(false);
-                    //     }
-                    // )
+                    let axiosPromise = axios.get("http://" + config.controlAppUrl + "/dispatchFinished", {
+                        params: {offerId: tasksQueue[0].offerId},
+                    });
+                    axiosPromise.then(
+                        (data) => {
+                            console.log(data);
+                            console.log("/dispatchFinished successfully called, removing a task from the queue")
+                            tasksQueue.shift();
+                            console.log("tasks queue after load: " + JSON.stringify(tasksQueue));
+                            setBusy(false);
+                            warehouse.status = "IDLE";
+                            // check if the reception buffer is too full and create a move task (or tasks)
+                            checkReceiveBuffer();
+                        },
+                        (error) => {
+                            console.log("error calling control app, task remains in the queue");
+                            console.log(error);
+                            setBusy(false);
+                            warehouse.status = "IDLE";
+                        }
+                    )
                 },
                 (error) => {
                     console.log("error while doing the LOAD task, task remains in the queue");
                     // if some error occurs, set the warehouse to not busy to enable the next task to be processed
                     setBusy(false);
+                    warehouse.status = "IDLE";
                     console.log(error);
                 }
             )
@@ -394,9 +398,9 @@ async function processTask(task) {
                 await unload("storageDock1Camera", warehouse.queueStorageDock1.topIndex);
 
                 // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
-                // await axios.get(config.controlAppUrl + "/dispatchFinished", {
-                //     params: {offerId: tasksQueue[0].offerId}
-                // });
+                await axios.get(config.controlAppUrl + "/dispatchFinished", {
+                    params: {offerId: tasksQueue[0].offerId}
+                });
 
             } else if ((itemIndex = warehouse.queueStorageDock2.items.indexOf(task.packageId)) !== -1) {
                 // package is in the storage dock 2
@@ -420,9 +424,9 @@ async function processTask(task) {
                 await unload("storageDock2Camera", warehouse.queueStorageDock2.topIndex);
 
                 // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
-                // await axios.get(config.controlAppUrl + "/dispatchFinished", {
-                //     params: {offerId: tasksQueue[0].offerId}
-                // });
+                await axios.get(config.controlAppUrl + "/dispatchFinished", {
+                    params: {offerId: tasksQueue[0].offerId}
+                });
 
             } else if (warehouse.queueStorageDock3.items.indexOf(task.packageId) !== -1) {
                 // package is in the storage dock 3
@@ -453,9 +457,9 @@ async function processTask(task) {
                 await unload("storageDock3Camera", warehouse.queueStorageDock3.topIndex);
 
                 // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
-                // await axios.get(config.controlAppUrl + "/dispatchFinished", {
-                //     params: {offerId: tasksQueue[0].offerId}
-                // });
+                await axios.get(config.controlAppUrl + "/dispatchFinished", {
+                    params: {offerId: tasksQueue[0].offerId}
+                });
 
             } else if ((itemIndex = warehouse.queueStorageDock4.items.indexOf(task.packageId)) !== -1) {
                 // package is in the storage dock 4
@@ -479,9 +483,9 @@ async function processTask(task) {
                 await unload("storageDock4Camera", warehouse.queueStorageDock4.topIndex);
 
                 // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
-                // await axios.get(config.controlAppUrl + "/dispatchFinished", {
-                //     params: {offerId: tasksQueue[0].offerId}
-                // });
+                await axios.get(config.controlAppUrl + "/dispatchFinished", {
+                    params: {offerId: tasksQueue[0].offerId}
+                });
 
             } else if ((itemIndex = warehouse.queueReceiveBuffer.items.indexOf(task.packageId)) !== -1) {
                 // package is in the reception buffer
@@ -506,9 +510,9 @@ async function processTask(task) {
                 await unload("receiveBufferCamera", warehouse.queueReceiveBuffer.topIndex);
 
                 // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
-                // await axios.get(config.controlAppUrl + "/dispatchFinished", {
-                //     params: {offerId: tasksQueue[0].offerId}
-                // });
+                await axios.get(config.controlAppUrl + "/dispatchFinished", {
+                    params: {offerId: tasksQueue[0].offerId}
+                });
 
             } else if ((itemIndex = warehouse.queueDispatchBuffer.items.indexOf(task.packageId)) !== -1) {
                 // package is in the dispatch buffer
@@ -534,9 +538,9 @@ async function processTask(task) {
                 await unload("dispatchBufferCamera", warehouse.queueDispatchBuffer.topIndex);
 
                 // send HTTP GET to the robot cars control app /dispatchFinished API endpoint
-                // await axios.get(config.controlAppUrl + "/dispatchFinished", {
-                //     params: {offerId: tasksQueue[0].offerId}
-                // });
+                await axios.get(config.controlAppUrl + "/dispatchFinished", {
+                    params: {offerId: tasksQueue[0].offerId}
+                });
 
             } else {
                 packageFound = false;
@@ -544,6 +548,7 @@ async function processTask(task) {
                 // if the package is not in the warehouse, remove the task from the queue and set the warehouse to not busy to enable the next task to be processed
                 tasksQueue.shift();
                 setBusy(false);
+                warehouse.status = "IDLE";
             }
 
             if (!packageFound) {
@@ -553,6 +558,7 @@ async function processTask(task) {
                 console.log("tasks queue after unload: " + JSON.stringify(tasksQueue));
                 // set the warehouse state to not busy
                 setBusy(false);
+                warehouse.status = "IDLE";
             }
 
         } catch (error) {
@@ -560,6 +566,7 @@ async function processTask(task) {
             console.log(error);
             // if some error occurred, set the warehouse to not busy to enable the next task to be processed
             setBusy(false);
+            warehouse.status = "IDLE";
         }
         // process the move task
     } else if (task.mode === "move") {
@@ -571,11 +578,13 @@ async function processTask(task) {
             tasksQueue.shift();
             console.log("tasks queue after move: " + JSON.stringify(tasksQueue));
             setBusy(false);
+            warehouse.status = "IDLE";
 
         }, (error) => {
             console.log("error while doing the move task, task remains in the queue");
             // set the warehouse state to not busy
             setBusy(false);
+            warehouse.status = "IDLE";
             console.log(error);
         })
     }

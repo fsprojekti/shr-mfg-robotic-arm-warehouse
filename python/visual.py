@@ -42,7 +42,7 @@ distances = []
 #         world_pt.append(pt.T.tolist())
 #     return world_pt
 
-# read image fro mfile
+# read image from file
 image =cv2.imread("./image/input.jpg")
 # create image for display output
 output = image.copy()

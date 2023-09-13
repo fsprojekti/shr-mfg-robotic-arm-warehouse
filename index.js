@@ -46,6 +46,7 @@ app.get('/warehouse', function (req, res) {
         "queueStorageDock1": warehouse.queueStorageDock1, "queueStorageDock2": warehouse.queueStorageDock2,
         "queueStorageDock3": warehouse.queueStorageDock3, "queueStorageDock4": warehouse.queueStorageDock4,
         "queueReceiveBuffer": warehouse.queueReceiveBuffer, "queueDispatchBuffer": warehouse.queueDispatchBuffer,
+        "status": warehouse.status
     }
     res.send(JSON.stringify(warehouseJson));
 
@@ -122,6 +123,15 @@ setInterval(async function () {
                 let task = tasksQueue[0];
                 console.info("processing task: " + JSON.stringify(task));
 
+                if(task.mode === "load") {
+                    warehouse.status = "LOADING";
+                }
+                else if (task.mode === "unload") {
+                    warehouse.status = "UNLOADING";
+                }
+                else if (task.mode === "move") {
+                    warehouse.status = "SWAPPING";
+                }
                 // process the task
                 await processTask(task);
 
