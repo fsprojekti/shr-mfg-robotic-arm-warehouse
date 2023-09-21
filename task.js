@@ -326,9 +326,6 @@ async function processTask(task) {
                     console.log(data);
                     console.log("load task " + task.offerId + " successfully finished, calling control app /dispatchFinished");
 
-                    // remove the task from the q
-                    tasksQueue.shift();
-                    console.log("tasks queue after load: " + JSON.stringify(tasksQueue));
                     // set the warehouse to not busy
                     setBusy(false);
                     // send HTTP GET to the robot cars control app /dispatchFinished API endpoint

@@ -1,5 +1,5 @@
 {
-  "roboticArmIpAddress": "192.168.0.105",
+  "roboticArmIpAddress": "192.168.0.104",
   "roboticArmHttpServerPort": 3000,
   "roboticArmRosServerPort": 8080,
   "nodejsPort": 3001,

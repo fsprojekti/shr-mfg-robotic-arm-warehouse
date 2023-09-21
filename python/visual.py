@@ -59,6 +59,8 @@ R = np.array(camera_params['R'], dtype=np.float64).reshape(3, 1)
 r_mat = np.zeros((3, 3), dtype=np.float64)
 cv2.Rodrigues(R, r_mat)
 
+center = []
+
 # convert rgb to gray
 frame_gray = cv2.cvtColor(np.copy(image), cv2.COLOR_RGB2GRAY)
 params = [K[0][0], K[1][1], K[0][2], K[1][2]]

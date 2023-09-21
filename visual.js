@@ -80,7 +80,7 @@ const getImageDataPy = async () => {
                 console.log("call to python visual.py successful");
                 console.log(stdout)
             }
-            resolve(stdout);
+            resolve(stdout + "}");
         })
     })
 }
