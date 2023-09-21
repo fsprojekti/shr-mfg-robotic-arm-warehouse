@@ -72,7 +72,7 @@ const getImageDataPy = async () => {
     await downloadImage();
     console.log("new image downloaded");
     return new Promise((resolve) => {
-        exec('python ./python/visual.py', async (error, stdout) => {
+        exec('python3 ./python/visual.py', async (error, stdout) => {
             if(error)
                 console.log(error)
             if(stdout) {
